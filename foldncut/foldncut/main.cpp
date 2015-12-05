@@ -26,14 +26,18 @@ int main(int argc, char** argv)
 {
 	//Reading polygon files
 	Polygon_2 poly; QPolygonF qt_polygon;	
-	read_file("square.txt", poly, qt_polygon);
+	read_file("star.txt", poly, qt_polygon);
 
 	//Using straight skeleton via iterator pair
+	//*****This program now works for polygon WITHOUT HOLES. 
 	SsPtr iss = CGAL::create_interior_straight_skeleton_2(poly.vertices_begin(), poly.vertices_end());
-
+	double EMaxOffset = 5;
+	SsPtr ess = CGAL::create_exterior_straight_skeleton_2(EMaxOffset, poly);
+	
 	//Extracts skeleton from cgal to qt
 	std::list<QLineF> bis;
 	convert_straight_skeleton(*iss, bis);
+	convert_straight_skeleton(*ess, bis);
 
 	//SETUP QT 
 	//Create applicaiton
