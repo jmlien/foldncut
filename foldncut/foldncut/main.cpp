@@ -32,7 +32,9 @@ int main(int argc, char** argv)
 	double EMaxOffset = 5;
 	SsPtr ess = CGAL::create_exterior_straight_skeleton_2(EMaxOffset, poly);
 	
-	construct_total_graph(*iss, *ess);
+	//Constructing the graph combining the straight skeleton and polygon
+	std::vector<stitchingGraph> tg;
+	construct_total_graph(poly, *iss, *ess, tg);
 
 	//Extracts skeleton from cgal and converts them to qt
 	std::list<QLineF> bis;
@@ -67,6 +69,7 @@ void read_file(char* filename, Polygon_2& poly, QPolygonF& qt_poly)
 
 	f.open(filename);
 	if(!f.is_open()) { std::cout << "Input polygon file is missing" << std::endl; exit(-1);}
+	else std::cout << "Opened file successfully" << std::endl;
 
 	while(!f.eof())
 	{
