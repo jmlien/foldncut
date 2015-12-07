@@ -10,8 +10,6 @@
 #include <CGAL/Qt/GraphicsViewNavigation.h>
 #include <CGAL/number_utils.h>
 
-#define MAX_DOUBLE (std::numeric_limits<double>::max)()
-#define MIN_DOUBLE std::numeric_limits<double>::denorm_min()
 #define PAPER_THRESHOLD 10.0
 
 qreal minX = MAX_DOUBLE; qreal minY = MAX_DOUBLE;
@@ -28,13 +26,15 @@ int main(int argc, char** argv)
 	Polygon_2 poly; QPolygonF qt_polygon;	
 	read_file("star.txt", poly, qt_polygon);
 
-	//Using straight skeleton via iterator pair
+	//Compute straight skeleton
 	//*****This program now works for polygon WITHOUT HOLES. 
 	SsPtr iss = CGAL::create_interior_straight_skeleton_2(poly.vertices_begin(), poly.vertices_end());
 	double EMaxOffset = 5;
 	SsPtr ess = CGAL::create_exterior_straight_skeleton_2(EMaxOffset, poly);
 	
-	//Extracts skeleton from cgal to qt
+	construct_total_graph(*iss, *ess);
+
+	//Extracts skeleton from cgal and converts them to qt
 	std::list<QLineF> bis;
 	convert_straight_skeleton(*iss, bis);
 	convert_straight_skeleton(*ess, bis);
@@ -112,7 +112,3 @@ void createQTscene(QGraphicsScene& s, QPolygonF& qt_poly, std::list<QLineF>& qt_
 		qt_bis.pop_front();
 	}
 }
-
-//Using straight skeleton directly
-//double IMaxOffset = 5;
-//SsPtr oss = CGAL::create_exterior_straight_skeleton_2(IMaxOffset, poly);

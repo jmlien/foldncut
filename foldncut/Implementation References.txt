@@ -1,3 +1,9 @@
+Visual Studio 2010 32bit
+
+boost 1.59
+CGAL 4.7
+Qt 5.5
+
 1. 2D Straight Skeleton
 
 http://doc.cgal.org/4.2/CGAL.CGAL.2D-Straight-Skeleton-and-Polygon-Offsetting/html/index.html
@@ -8,4 +14,3 @@ http://doc.cgal.org/latest/HalfedgeDS/index.html
 http://doc.cgal.org/4.2/CGAL.CGAL.CGAL-and-the-Boost-Graph-Library/html/index.html
 
 3. Mountain and Velly crease
-
