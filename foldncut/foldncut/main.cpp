@@ -10,7 +10,8 @@
 #include <CGAL/Qt/GraphicsViewNavigation.h>
 #include <CGAL/number_utils.h>
 
-#define PAPER_THRESHOLD 10.0
+#define PAPER_THRESHOLD 100.0
+double EMaxOffset = 150;
 
 qreal minX = MAX_DOUBLE; qreal minY = MAX_DOUBLE;
 qreal maxX = MIN_DOUBLE; qreal maxY = MIN_DOUBLE;
@@ -24,12 +25,11 @@ int main(int argc, char** argv)
 {
 	//Reading polygon files
 	Polygon_2 poly; QPolygonF qt_polygon;	
-	read_file("star.txt", poly, qt_polygon);
+	read_file("models/swan.txt", poly, qt_polygon);
 
 	//Compute straight skeleton
 	//*****This program now works for polygon WITHOUT HOLES. 
 	SsPtr iss = CGAL::create_interior_straight_skeleton_2(poly.vertices_begin(), poly.vertices_end());
-	double EMaxOffset = 5;
 	SsPtr ess = CGAL::create_exterior_straight_skeleton_2(EMaxOffset, poly);
 	
 	//Constructing the graph combining the straight skeleton and polygon
@@ -64,6 +64,7 @@ int main(int argc, char** argv)
 
 void read_file(char* filename, Polygon_2& poly, QPolygonF& qt_poly)
 {
+	//*****y coordinate is flipped!
 	std::ifstream f; 
 	double x, y;
 
@@ -111,7 +112,7 @@ void createQTscene(QGraphicsScene& s, QPolygonF& qt_poly, std::list<QLineF>& qt_
 	while(qt_bis.size() !=0 )														
 	{
 		line = qt_bis.front();
-		s.addLine(line, QPen(QBrush(Qt::blue), width/100.0));
+		s.addLine(line, QPen(QBrush(Qt::red), width/300.0));
 		qt_bis.pop_front();
 	}
 }
