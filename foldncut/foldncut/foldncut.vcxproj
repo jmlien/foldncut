@@ -80,7 +80,10 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="handling_SS.h" />
+    <ClInclude Include="datastructure_ss.h" />
+    <ClInclude Include="foldncut.h" />
+    <ClInclude Include="globals.h" />
+    <ClInclude Include="io_ss.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
