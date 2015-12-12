@@ -81,7 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="datastructure_ss.h" />
-    <ClInclude Include="foldncut.h" />
+    <ClInclude Include="creasepattern.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="io_ss.h" />
   </ItemGroup>

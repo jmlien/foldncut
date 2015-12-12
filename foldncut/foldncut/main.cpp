@@ -1,12 +1,13 @@
-//#include "datastructure_ss.h"
 #include "io_ss.h"
-#include "foldncut.h"
+#include "creasepattern.h"
+
+double EMaxOffset = PAPER_THRESHOLD * 1.5;
 
 int main(int argc, char** argv)
 {
 	//Reading polygon files
-	Polygon_2 poly; QPolygonF qt_polygon;	
-	read_file("models/bigstar.txt", poly, qt_polygon);
+	Polygon_2 poly; QPolygonF poly_qt;	
+	read_file("models/swan.txt", poly, poly_qt);
 
 	//Compute straight skeleton
 	//*****This program now works for polygon WITHOUT HOLES. 
@@ -14,17 +15,20 @@ int main(int argc, char** argv)
 	SsPtr ess = CGAL::create_exterior_straight_skeleton_2(EMaxOffset, poly);
 	
 	//Constructing the graph combining the straight skeleton and polygon
-	std::vector<stitchingGraph> stg;
-	construct_total_graph(poly, *iss, *ess, stg);
+	std::vector<BridgingGraph> bg;
+	construct_total_graph(poly, *iss, *ess, bg);
 
 	//Compute perpendiculars
-	std::list<Halfedge_handle> ppd;
-	generate_perpendiculars(*iss, *ess, stg, ppd);
+	std::list<Segment> ppd;
+	generate_perpendiculars(*iss, *ess, bg, ppd);
 
 	//Extracts skeleton from cgal and converts them to qt
-	std::list<QLineF> bis;
-	convert_straight_skeleton(*iss, bis);
-	convert_straight_skeleton(*ess, bis);
+	std::list<QLineF> bis_qt;
+	convert_straight_skeleton(*iss, bis_qt);
+	convert_straight_skeleton(*ess, bis_qt);
+
+	std::list<QLineF> ppd_qt;
+	convert_perpendiculars<K>(ppd, ppd_qt);
 
 	//SETUP QT 
 	//Create applicaiton
@@ -32,7 +36,7 @@ int main(int argc, char** argv)
 
 	//Create scene
 	QGraphicsScene scene;
-	createQTscene(scene, qt_polygon, bis);
+	createQTscene(scene, poly_qt, bis_qt, ppd_qt);
 
 	//Create view
 	QGraphicsView* view = new QGraphicsView(&scene);

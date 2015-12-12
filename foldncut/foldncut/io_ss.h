@@ -1,3 +1,5 @@
+#ifndef SS_IO_H
+#define SS_IO_H
 #include "globals.h"
 
 #include <iostream>
@@ -12,15 +14,6 @@
 #include <CGAL/Qt/GraphicsViewNavigation.h>
 #include <CGAL/number_utils.h>
 
-//For Visualization
-#define MAX_DOUBLE (std::numeric_limits<double>::max)()
-#define MIN_DOUBLE std::numeric_limits<double>::denorm_min()
-
-#define PAPER_THRESHOLD 100.0
-double EMaxOffset = 150;
-
-qreal minX = MAX_DOUBLE; qreal minY = MAX_DOUBLE;
-qreal maxX = MIN_DOUBLE; qreal maxY = MIN_DOUBLE;
 qreal width = 0;
 qreal height = 0;
 
@@ -33,6 +26,9 @@ void read_file(char* filename, Polygon_2& poly, QPolygonF& qt_poly)
 	f.open(filename);
 	if(!f.is_open()) { std::cout << "Input polygon file is missing" << std::endl; exit(-1);}
 	else std::cout << "Opened file successfully" << std::endl;
+
+	minX = MAX_DOUBLE; minY = MAX_DOUBLE;
+	maxX = MIN_DOUBLE; maxY = MIN_DOUBLE;
 
 	while(!f.eof())
 	{
@@ -53,7 +49,7 @@ void read_file(char* filename, Polygon_2& poly, QPolygonF& qt_poly)
 	f.close();
 }
 
-void createQTscene(QGraphicsScene& s, QPolygonF& qt_poly, std::list<QLineF>& qt_bis)
+void createQTscene(QGraphicsScene& s, QPolygonF& poly, std::list<QLineF>& bis, std::list<QLineF>& ppd)
 {
 	//Set the coordinates
 	s.setSceneRect(minX-PAPER_THRESHOLD, minY-PAPER_THRESHOLD, width+2*PAPER_THRESHOLD, height+2*PAPER_THRESHOLD);	
@@ -67,16 +63,26 @@ void createQTscene(QGraphicsScene& s, QPolygonF& qt_poly, std::list<QLineF>& qt_
 	s.addPolygon(paper, QPen(QBrush(Qt::SolidLine), width/100.0));
 
 	//Draw polygon
-	s.addPolygon(qt_poly, QPen(QBrush(Qt::SolidLine), width/100.0));		
+	s.addPolygon(poly, QPen(QBrush(Qt::SolidLine), width/100.0));		
 
 	//Draw skeleton
 	QLineF line;
-	while(qt_bis.size() !=0 )														
+	while(bis.size() !=0 )														
 	{
-		line = qt_bis.front();
+		line = bis.front();
 		s.addLine(line, QPen(QBrush(Qt::red), width/300.0));
-		qt_bis.pop_front();
+		bis.pop_front();
 	}
+
+	//Draw perpendiculars
+	while(ppd.size() !=0 )														
+	{
+		line = ppd.front();
+		s.addLine(line, QPen(QBrush(Qt::blue), width/300.0));
+		ppd.pop_front();
+	}
+
+
 }
 
 template<class K>
@@ -121,3 +127,23 @@ void convert_straight_skeleton( CGAL::Straight_skeleton_2<K> const& ss , std::li
 		}
 	} 
 }
+
+template<class K>
+void convert_perpendiculars(std::list<Segment>& ppd, std::list<QLineF> &perpendiculars)
+{
+	if(ppd.empty()) {std::cout << "There is no perpendiculars! Please check perpendiculars again."<< std::endl; return;}
+
+	Point opp, p;
+
+	Segment s;
+
+	while(!ppd.empty())
+	{
+		s = ppd.front();
+		p = s.vertex(0);
+		opp = s.vertex(1);
+		perpendiculars.push_back(QLineF(opp.x(), opp.y(), p.x(), p.y()));
+		ppd.pop_front();
+	}
+}
+#endif
