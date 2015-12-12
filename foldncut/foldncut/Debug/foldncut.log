@@ -1,31 +1,20 @@
-﻿빌드 시작: 2015-12-12 오후 9:34:37
-     1>2 노드의 "C:\Users\w66_000\Documents\GitHub\foldncut\foldncut\foldncut\foldncut.vcxproj" 프로젝트(build 대상)입니다.
+﻿빌드 시작: 2015-12-13 오전 3:31:37
+     1>2 노드의 "C:\Users\Yeojin\Documents\GitHub\foldncut\foldncut\foldncut\foldncut.vcxproj" 프로젝트(build 대상)입니다.
      1>InitializeBuildStatus:
          "AlwaysCreate"이(가) 지정되었기 때문에 "Debug\foldncut.unsuccessfulbuild"을(를) 만들고 있습니다.
        ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I"C:\CGAL-4.7\auxiliary\gmp\include" /I"C:\CGAL-4.7\build\include" /I"C:\CGAL-4.7\include" /IC:\boost_1_59_0 /IC:\Qt\5.5\msvc2010\include /IC:\Qt\5.5\msvc2010\include\QtWidgets /IC:\Qt\5.5\msvc2010\include\Qtcore /IC:\Qt\5.5\msvc2010\include\QtGui /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
-         main.cpp
-     1>c:\cgal-4.7\include\cgal\constructions\straight_skeleton_cons_ftc2.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-     1>c:\cgal-4.7\include\cgal\constructions\straight_skeleton_cons_ftc2.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-     1>c:\cgal-4.7\include\cgal\constructions\straight_skeleton_cons_ftc2.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-     1>c:\cgal-4.7\include\cgal\constructions\polygon_offset_cons_ftc2.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-     1>c:\cgal-4.7\include\cgal\constructions\straight_skeleton_cons_ftc2.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
+         모든 출력이 최신 상태입니다.
        ManifestResourceCompile:
          모든 출력이 최신 상태입니다.
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\w66_000\Documents\GitHub\foldncut\foldncut\Debug\foldncut.exe" /INCREMENTAL /NOLOGO "libgmp-10.lib" "libmpfr-4.lib" glu32.lib opengl32.lib C:\Qt\5.5\msvc2010\lib\Qt5OpenGLd.lib C:\Qt\5.5\msvc2010\lib\Qt5Widgetsd.lib C:\Qt\5.5\msvc2010\lib\Qt5Cored.lib C:\Qt\5.5\msvc2010\lib\Qt5Guid.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\foldncut.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\w66_000\Documents\GitHub\foldncut\foldncut\Debug\foldncut.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\w66_000\Documents\GitHub\foldncut\foldncut\Debug\foldncut.lib" /MACHINE:X86 Debug\foldncut.exe.embed.manifest.res
-         Debug\main.obj
+         모든 출력이 최신 상태입니다.
        Manifest:
-         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /out:"Debug\foldncut.exe.embed.manifest" /manifest Debug\foldncut.exe.intermediate.manifest
          모든 출력이 최신 상태입니다.
-       LinkEmbedManifest:
-         모든 출력이 최신 상태입니다.
-         foldncut.vcxproj -> C:\Users\w66_000\Documents\GitHub\foldncut\foldncut\Debug\foldncut.exe
        FinalizeBuildStatus:
          "Debug\foldncut.unsuccessfulbuild" 파일을 삭제하고 있습니다.
          "Debug\foldncut.lastbuildstate"에 연결(touching)하고 있습니다.
-     1>"C:\Users\w66_000\Documents\GitHub\foldncut\foldncut\foldncut\foldncut.vcxproj" 프로젝트를 빌드했습니다(build 대상).
+     1>"C:\Users\Yeojin\Documents\GitHub\foldncut\foldncut\foldncut\foldncut.vcxproj" 프로젝트를 빌드했습니다(build 대상).
 
 빌드했습니다.
 
-경과 시간: 00:00:14.70
+경과 시간: 00:00:00.57

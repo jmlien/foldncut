@@ -10,6 +10,8 @@
 typedef Polygon_2::Edge_const_circulator Edge_const_circulator;
 typedef Ss::Halfedge_const_iterator Halfedge_const_iterator ;
 typedef Ss::Halfedge_handle Halfedge_handle;
+typedef Ss::Halfedge_const_handle Halfedge_const_handle;
+
 typedef struct BridgingGraph
 {
 	Segment cut_edge;		
@@ -17,7 +19,7 @@ typedef struct BridgingGraph
 	int fid_ess;
 
 }BRIDGINGGRAPH;
-typedef std::vector<BridgingGraph>::iterator I;
+typedef std::vector<BridgingGraph>::const_iterator I;
 typedef CGAL::Circulator_from_iterator<I>	Circulator;
 
 typedef Ss::Face_const_iterator Face_const_iterator ;
@@ -25,6 +27,8 @@ typedef Ss::Face_const_iterator Face_const_iterator ;
 template<class K>
 void construct_total_graph( Polygon_2& poly, CGAL::Straight_skeleton_2<K> const& interior_ss, CGAL::Straight_skeleton_2<K> const& exterior_ss, std::vector<BridgingGraph>& bg)
 {
+	std::cout << "Constructing data structure.." << std::endl;
+
 	if(poly.is_empty()) {std::cout << "Polygon is empty. Please check your model again."<< std::endl; exit(-1);}
 
 	//Make circulator in the same order with polygon
@@ -33,14 +37,16 @@ void construct_total_graph( Polygon_2& poly, CGAL::Straight_skeleton_2<K> const&
 	Edge_const_circulator e = poly.edges_circulator();
 
 	do{
-		BridgingGraph sgNode = BridgingGraph();
-		sgNode.cut_edge = Segment(Point(e->vertex(0).x(), e->vertex(0).y()), Point(e->vertex(1).x(), e->vertex(1).y()));
-		sgNode.fid_iss = find_skeleton_face_id(interior_ss, sgNode.cut_edge, 0);
-		sgNode.fid_ess = find_skeleton_face_id(exterior_ss, sgNode.cut_edge, interior_ss.size_of_faces());
+		BridgingGraph bgNode = BridgingGraph();
+		bgNode.cut_edge = Segment(Point(e->vertex(0).x(), e->vertex(0).y()), Point(e->vertex(1).x(), e->vertex(1).y()));
+		bgNode.fid_iss = find_skeleton_face_id(interior_ss, bgNode.cut_edge, 0);
+		bgNode.fid_ess = find_skeleton_face_id(exterior_ss, bgNode.cut_edge, interior_ss.size_of_faces());
 
-		if(sgNode.fid_iss == -1) {std::cout << "Cannot find match cutedges in straight skeleton structure" << std::endl; exit(-1);}
-		if(sgNode.fid_ess == -1) {std::cout << "Cannot find match cutedges in straight skeleton structure" << std::endl; exit(-1);}
-		bg.push_back(sgNode);
+		//std::cout << "bg iss :" << sgNode.fid_iss << " bg ess: " << sgNode.fid_ess << std::endl;
+
+		if(bgNode.fid_iss == -1) {std::cout << "Cannot find match cutedges in straight skeleton structure" << std::endl; exit(-1);}
+		if(bgNode.fid_ess == -1) {std::cout << "Cannot find match cutedges in straight skeleton structure" << std::endl; exit(-1);}
+		bg.push_back(bgNode);
 		++e;
 
 	}while( e != root);
@@ -77,8 +83,8 @@ int find_skeleton_face_id(CGAL::Straight_skeleton_2<K> const& ss, Segment& seg, 
 		if(same_v == 2)	//if they are identical
 		{
 			//Keep the id of skeleton face
-			if(h->face() != NULL) return h->face()->id();
-			else if(h->opposite()->face() != NULL) return h->opposite()->face()->id();
+			if(h->face() != NULL) return h->face()->id()+offset;
+			else if(h->opposite()->face() != NULL) return h->opposite()->face()->id()+offset;
 			else return -1;
 		}
 	}
@@ -87,7 +93,7 @@ int find_skeleton_face_id(CGAL::Straight_skeleton_2<K> const& ss, Segment& seg, 
 
 //This function can help move on from cut edges to next skeleton faces(where reflected ray exists). 
 template<class K>
-void find_skeleton_face(CGAL::Straight_skeleton_2<K> const& ss, int const& fid, int const& offset, Halfedge_handle& edge_ss)
+void find_skeleton_face(CGAL::Straight_skeleton_2<K> const& ss, int const& fid, int const& offset, Halfedge_const_handle& edge_ss)
 {
 	Face_const_iterator f = ss.faces_begin();
 	int n = fid - offset;
@@ -96,7 +102,7 @@ void find_skeleton_face(CGAL::Straight_skeleton_2<K> const& ss, int const& fid, 
 		++f;
 		--n;
 	}
-	edge = f->halfedge();
+	edge_ss = f->halfedge();
 	//std::cout << "Face #" << f->id() << ": "<< f->halfedge()->vertex()->point().x() << " " <<f->halfedge()->vertex()->point().y() <<", "<< f->halfedge()->opposite()->vertex()->point().x() <<" "<<f->halfedge()->opposite()->vertex()->point().y() << std::endl;
 }
 template<class K>
@@ -128,18 +134,32 @@ void search_bridgegraph(std::vector<BridgingGraph> const& bg_list, Segment const
 template<class K>
 void search_bridgegraph(std::vector<BridgingGraph> const& bg_list, int const& fid, int const& offset, BridgingGraph& bg)
 {
-	if( fid > offset)
+	//SEARCH ON EXTERIOR SKELTON
+	if( offset != 0)
 	{
 		for(I b=bg_list.begin(); b != bg_list.end(); ++b)
 		{
-			if(b->fid_ess == fid-offset) { bg = b; return;}
+			if(b->fid_ess == fid) 
+			{ 
+				bg.cut_edge = b->cut_edge;
+				bg.fid_ess = b->fid_ess;
+				bg.fid_iss = b->fid_iss;
+				return;
+			}
 		}
 	}
+	//SEARCH ON INTERIOR SKELTON
 	else
 	{
 		for(I b=bg_list.begin(); b != bg_list.end(); ++b)
 		{
-			if(b->fid_iss == fid) { bg = b; return;}
+			if(b->fid_iss == fid) 
+			{ 
+				bg.cut_edge = b->cut_edge;
+				bg.fid_ess = b->fid_ess;
+				bg.fid_iss = b->fid_iss;
+				return;
+			}
 		}
 	}
 }
