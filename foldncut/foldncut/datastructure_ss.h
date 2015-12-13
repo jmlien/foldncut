@@ -42,7 +42,7 @@ void construct_total_graph( Polygon_2& poly, CGAL::Straight_skeleton_2<K> const&
 		bgNode.fid_iss = find_skeleton_face_id(interior_ss, bgNode.cut_edge, 0);
 		bgNode.fid_ess = find_skeleton_face_id(exterior_ss, bgNode.cut_edge, interior_ss.size_of_faces());
 
-		//std::cout << "bg iss :" << sgNode.fid_iss << " bg ess: " << sgNode.fid_ess << std::endl;
+		std::cout << "bg iss :" << bgNode.fid_iss << " bg ess: " << bgNode.fid_ess << std::endl;
 
 		if(bgNode.fid_iss == -1) {std::cout << "Cannot find match cutedges in straight skeleton structure" << std::endl; exit(-1);}
 		if(bgNode.fid_ess == -1) {std::cout << "Cannot find match cutedges in straight skeleton structure" << std::endl; exit(-1);}

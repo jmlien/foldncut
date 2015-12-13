@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 {
 	//Reading polygon files
 	Polygon_2 poly; QPolygonF poly_qt;	
-	read_file("models/swan.txt", poly, poly_qt);
+	read_file("models/turtle.txt", poly, poly_qt);
 
 	//Compute straight skeleton
 	//*****This program now works for polygon WITHOUT HOLES. 
