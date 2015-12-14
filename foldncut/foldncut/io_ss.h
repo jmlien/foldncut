@@ -123,6 +123,10 @@ void convert_straight_skeleton( CGAL::Straight_skeleton_2<K> const& ss , std::li
 		if(i->is_bisector()){
 			opp = i->opposite()->vertex()->point();
 			p = i->vertex()->point();
+			CGAL::exact(opp.x());
+			CGAL::exact(opp.y());
+			CGAL::exact(p.x());
+			CGAL::exact(p.y());
 			bisectors.push_back(QLineF(opp.x(), opp.y(), p.x(), p.y()));
 		}
 	} 

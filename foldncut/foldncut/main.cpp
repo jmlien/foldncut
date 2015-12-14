@@ -16,11 +16,12 @@ int main(int argc, char** argv)
 	
 	//Constructing the graph combining the straight skeleton and polygon
 	std::vector<BridgingGraph> bg;
-	construct_total_graph(poly, *iss, *ess, bg);
+	construct_bridging_graph(poly, *iss, *ess, bg);
 
 	//Compute perpendiculars
 	std::list<Segment> ppd;
 	generate_perpendiculars(*iss, *ess, bg, ppd);
+	//unique_perpendiculars(ppd);
 
 	//Extracts skeleton from cgal and converts them to qt
 	std::list<QLineF> bis_qt;
@@ -29,7 +30,7 @@ int main(int argc, char** argv)
 
 	std::list<QLineF> ppd_qt;
 	convert_perpendiculars<K>(ppd, ppd_qt);
-
+	
 	//SETUP QT 
 	//Create applicaiton
 	QApplication app(argc, argv);
