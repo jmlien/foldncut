@@ -49,7 +49,7 @@ void generate_perpendiculars(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Stra
 						if(assign(intersect_p, res_intersect))
 						{
 							ppd.push_back(Segment(skeleton_v, intersect_p));
-							std::cout << "skeleton vertex: "<< skeleton_v.x() <<" " << skeleton_v.y()<<std::endl;
+							std::cout << "*******skeleton vertex: "<< skeleton_v.x() <<" " << skeleton_v.y()<<std::endl;
 							perpendicular(iss, ess, bg, ppd,edge_sf->face()->id(),0);
 							break;
 						}
@@ -144,6 +144,21 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 				ppd.push_back(perpendicular_first);
 				hits_skeleton_edge = true;
 				break;
+			}else
+			{
+				if(CGAL::do_intersect(edge_ss, incident_ray)) //*******************?!?!?!?!?!?
+				{
+					CGAL::Object res_intersect = CGAL::intersection(Line(edge_ss.vertex(0), edge_ss.vertex(1)), incident_ray);
+					if(assign(incidence_p, res_intersect))
+					{
+						//If there is intersection, keep the segment connect from cutedge to skeleton edge
+						normal = Line(edge_ss.vertex(0), edge_ss.vertex(1));
+						Segment perpendicular_first(last_end, incidence_p);
+						ppd.push_back(perpendicular_first);
+						hits_skeleton_edge = true;
+						break;
+					}
+				}
 			}
 		}
 		edge_around_face = edge_around_face->next();
@@ -167,12 +182,12 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 		else
 			current_fid = edge_around_face->face()->id()+offset;
 	}
-	else current_fid = -1;
-	if(current_fid == -1) return;
+	//	else current_fid = -1;
+	//	if(current_fid == -1) return;
 	std::cout << "middle2 face: "<<current_fid<<std::endl;
 
 	//Make sure if this segment hits the cutedge. If not, make a segment hits straight skeleton
-	bool hits_skeleton = false;
+	bool hits_next_skeleton = false;
 	BridgingGraph next_b;
 
 	Point hit_p;
@@ -182,18 +197,30 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 		//Obtain the cutedge
 		if( current_fid >= offset)	search_bridgegraph<K>(bg, current_fid, offset, next_b);
 		else						search_bridgegraph<K>(bg, current_fid, 0, next_b);
+		//std::cout <<"while  current face id : "<< current_fid<<std::endl;
+		//std::cout <<"current ppd:"<<ppd_candidate.vertex(0).x() << " " <<ppd_candidate.vertex(0).y() << " "<< ppd_candidate.vertex(1).x() << " " <<ppd_candidate.vertex(1).y()<<std::endl;
+
+		//Find the new incident ray using last data
+		Line new_incident_ray(ppd_candidate.vertex(0), ppd_candidate.vertex(1));
 
 		//Test if given candidate hits the cut edge
-		CGAL::Object res_hit = CGAL::intersection(next_b.cut_edge, ppd_candidate);
-		if(assign(hit_p, res_hit))	break;	//if this candidate hits cut edge, move to next recursive step.
+		CGAL::Object res_hit = CGAL::intersection(next_b.cut_edge, new_incident_ray);
+		if(assign(hit_p, res_hit))//if this candidate hits cut edge, move to next recursive step.
+		{	
+			if(abs((hit_p-ppd_candidate.vertex(1)).squared_length())>1e-16)
+			{
+				ppd.pop_back();
+				ppd.push_back(Segment(ppd_candidate.vertex(0), hit_p));
+			}
+			break;
+		}	
+		//if(CGAL::do_intersect(next_b.cut_edge, new_incident_ray))
+		//	break;
 		else								//if this candidate doesn't hit cut edge, find other skeleton edge which intersect with it
 		{
 			if(ppd_candidate.vertex(1).x() < minX-PAPER_THRESHOLD || ppd_candidate.vertex(1).x() > maxX+PAPER_THRESHOLD) return;	//If the new point is outside of the paper, terminates.
 			if(ppd_candidate.vertex(1).y() < minY-PAPER_THRESHOLD || ppd_candidate.vertex(1).y() > maxY+PAPER_THRESHOLD) return;
-			
-			//Find the new incident ray using last data
-			Line new_incident_ray(ppd_candidate.vertex(0), ppd_candidate.vertex(1));
-			
+
 			//Find the face using last face data
 			Halfedge_const_handle e_root, e;
 			if( current_fid >= offset)	
@@ -203,27 +230,32 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 
 			e = Halfedge_const_handle(e_root);
 
-			Point new_inc_p;		
+			Point new_inc_p;	hits_next_skeleton=false;	
 			do{
 				//Loop through the skeleton edges
 				if(e->is_bisector())
 				{
 					Segment edge_ss(Point(e->vertex()->point().x(), e->vertex()->point().y()), Point(e->opposite()->vertex()->point().x(), e->opposite()->vertex()->point().y()));
-					
+
 					//Test if the skeleton edge has intersection with candidate
-					CGAL::Object res_hit_new = CGAL::intersection(edge_ss, ppd_candidate);
+					if(!CGAL::do_intersect(edge_ss, new_incident_ray)) { e = e->next(); continue;}	//**************?!?!?!?!?!?
+
+					CGAL::Object res_hit_new = CGAL::intersection(edge_ss, new_incident_ray);
 					if(assign(new_inc_p, res_hit_new))	//if it has intersection
 					{
 						if(abs((new_inc_p-ppd_candidate.vertex(0)).squared_length())>1e-16)	//and if this point is not on the skeleton edge already crossed, 
 						{	
+							//std::cout << "skeleton edge: " << edge_ss.vertex(0).x() <<" " <<edge_ss.vertex(0).y() <<" "<<edge_ss.vertex(1).x()<<" "<< edge_ss.vertex(1).y()<<std::endl;
+							//std::cout << "line: "<<ppd_candidate.vertex(0).x()<<" "<<ppd_candidate.vertex(0).y()<<" "<<ppd_candidate.vertex(1).x()<<" "<<ppd_candidate.vertex(1).y()<<std::endl;
 							std::cout << "find new incident point" << new_inc_p.x() << " " << new_inc_p.y()<< std::endl;
-							std::cout << "original point"<<ppd_candidate.vertex(0).x() << " " << ppd_candidate.vertex(0).y() << std::endl;
+							//std::cout << "original point"<<ppd_candidate.vertex(0).x() << " " << ppd_candidate.vertex(0).y() << std::endl;
+							//std::cout << ppd_candidate.vertex(1).x() << " " << ppd_candidate.vertex(1).y() << std::endl;
 							ppd.pop_back();																		//remove candidate
 							ppd_candidate = Segment(ppd_candidate.vertex(0), new_inc_p);
 							ppd.push_back(ppd_candidate);														//add modified candidate
 							normal = Line(edge_ss.vertex(0), edge_ss.vertex(1));
 							std::cout << "line:" <<edge_ss.vertex(0).x()<<" "<<edge_ss.vertex(0).y()<<" "<<edge_ss.vertex(1).x()<<edge_ss.vertex(1).y()<<std::endl;
-							hits_skeleton_edge = true;
+							hits_next_skeleton = true;
 
 							//Obtain current face id
 							e = e->opposite();
@@ -237,25 +269,61 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 							else current_fid = -1;
 							std::cout <<"new face id:"<< current_fid << std::endl;
 							if(current_fid == -1) return;
-							
 
 							//Compute the segment connect from skeleton edge to cutedge
 							Point proj_p = normal.projection(ppd_candidate.vertex(0));
 							std::cout << "proj p:"<<proj_p.x() <<" " <<proj_p.y()<< std::endl;
-							Point reflect_p= last_end + 2*(proj_p-ppd_candidate.vertex(0));
+							Point reflect_p= ppd_candidate.vertex(0) + 2*(proj_p-ppd_candidate.vertex(0));
 							std::cout << "reflect_p p:"<<reflect_p.x() <<" " <<reflect_p.y()<< std::endl;
 							ppd_candidate = Segment(new_inc_p, reflect_p);
 							ppd.push_back(ppd_candidate);
 
 							break;
+						}else std::cout<< "already crossed"<<std::endl;
+					}
+					else //TEST IF SKELETON EDGE INTERSECTION WITH CANDIDATES
+					{
+						if(CGAL::do_intersect(edge_ss, new_incident_ray)) //*************?!?!!?!?!?!!?!!?!?
+						{
+							std::cout<<"!";
+							CGAL::Object res_hit_new = CGAL::intersection(Line(edge_ss.vertex(0), edge_ss.vertex(1)), new_incident_ray);
+							if(assign(new_inc_p, res_hit_new)){
+								if(abs((new_inc_p-ppd_candidate.vertex(0)).squared_length())>1e-16)	//and if this point is not on the skeleton edge already crossed, 
+								{	
+									ppd.pop_back();																		//remove candidate
+									ppd_candidate = Segment(ppd_candidate.vertex(0), new_inc_p);
+									ppd.push_back(ppd_candidate);														//add modified candidate
+									normal = Line(edge_ss.vertex(0), edge_ss.vertex(1));
+									hits_next_skeleton = true;
+
+									//Obtain current face id
+									e = e->opposite();
+									if(e->face() != NULL)
+									{
+										if( current_fid >= offset)
+											current_fid = e->face()->id()+offset;
+										else
+											current_fid = e->face()->id();
+									}
+									else current_fid = -1;
+									if(current_fid == -1) return;
+
+									//Compute the segment connect from skeleton edge to cutedge
+									Point proj_p = normal.projection(ppd_candidate.vertex(0));
+									Point reflect_p= ppd_candidate.vertex(0) + 2*(proj_p-ppd_candidate.vertex(0));
+									ppd_candidate = Segment(new_inc_p, reflect_p);
+									ppd.push_back(ppd_candidate);
+
+									break;
+								}}
 						}
+						std::cout << "no intersect"<<std::endl;
 					}
 				}
 				e = e->next();
-			}while(e != e_root);
-
-			break;
-		}
+			}while(e != e_root);	//LOOP_THROUGH_CURRENT_FACE
+			if(!hits_next_skeleton) return;
+		}	//CANDIDATE DOESN'T HIT CUT EDGE
 	}
 
 	//Computing perpendiculars recursively
