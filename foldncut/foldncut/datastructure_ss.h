@@ -24,22 +24,48 @@ typedef CGAL::Circulator_from_iterator<I>	Circulator;
 
 typedef Ss::Face_const_iterator Face_const_iterator ;
 
-bool is_same_segment(Segment const& first, Segment const& second, double epsilon)
+bool is_almost_same_segment(Segment const& first, Segment const& second, double epsilon)
 {
 	int same_v = 0;
-
 	Point fa(first.vertex(0)), fb(first.vertex(1));
 	Point sa(second.vertex(0)), sb(second.vertex(1));
 
-	if(abs((fa-sa).squared_length()) < epsilon ) same_v++;
-	if(abs((fa-sb).squared_length()) < epsilon ) same_v++;
-	if(abs((fb-sa).squared_length()) < epsilon ) same_v++;
-	if(abs((fb-sb).squared_length()) < epsilon ) same_v++;
+	double dist1 = abs((fa-sa).squared_length());
+	double dist2 = abs((fa-sb).squared_length());
+	double dist3 = abs((fb-sa).squared_length());
+	double dist4 = abs((fb-sb).squared_length());
+
+	if(dist1 < epsilon ) same_v++;
+	if(dist2 < epsilon ) same_v++;
+	if(dist3 < epsilon ) same_v++;
+	if(dist4 < epsilon ) same_v++;
 
 	if(same_v == 2)	return true;
 	else return false;
 }
 
+double is_not_exact_same_segment(Segment const& first, Segment const& second)
+{
+	int zero_count = 0;
+
+	Point fa(first.vertex(0)), fb(first.vertex(1));
+	Point sa(second.vertex(0)), sb(second.vertex(1));
+	
+	double dist1 = abs((fa-sa).squared_length());
+	double dist2 = abs((fa-sb).squared_length());
+	double dist3 = abs((fb-sa).squared_length());
+	double dist4 = abs((fb-sb).squared_length());
+
+
+	if(dist1 == 0) zero_count++;
+	if(dist2 == 0) zero_count++;
+	if(dist3 == 0) zero_count++;
+	if(dist4 == 0) zero_count++;
+
+	if(zero_count==1) return true;
+	else			  return false;
+
+}
 template<class K>
 void construct_bridging_graph(Polygon_2& poly, CGAL::Straight_skeleton_2<K> const& interior_ss, CGAL::Straight_skeleton_2<K> const& exterior_ss, std::vector<BridgingGraph>& bg)
 {
@@ -80,7 +106,7 @@ int find_skeleton_face_id(CGAL::Straight_skeleton_2<K> const& ss, Segment& seg, 
 		//Find if the edge is identical to halfedge in straight skeleton structure
 		Segment seg_ss(Point(h->vertex()->point().x(), h->vertex()->point().y()),Point(h->opposite()->vertex()->point().x(), h->opposite()->vertex()->point().y()));
 
-		if(is_same_segment(seg, seg_ss, epsilon))
+		if(is_almost_same_segment(seg, seg_ss, epsilon))
 		{
 			//Keep the id of skeleton face
 			if(h->face() != NULL) return h->face()->id()+offset;
@@ -113,7 +139,7 @@ void search_bridgegraph(std::vector<BridgingGraph> const& bg_list, Segment const
 
 	for(I b=bg_list.begin(); b != bg_list.end(); ++b)
 	{
-		if(is_same_segment(e, b->cut_edge, epsilon)) { bg=b; return;}
+		if(is_almost_same_segment(e, b->cut_edge, epsilon)) { bg=b; return;}
 	}
 }
 

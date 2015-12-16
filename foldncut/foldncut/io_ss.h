@@ -93,6 +93,19 @@ void print_point ( CGAL::Point_2<K> const& p )
 
 //This function simply shows the bisectors and contours of straight skeleton in command window. 
 template<class K>
+void print_straight_skeleton_vertex( CGAL::Straight_skeleton_2<K> const& ss )
+{
+
+	typedef typename Ss::Vertex_const_iterator Vertex_const_iterator ;
+
+	for ( Vertex_const_iterator i = ss.vertices_begin(); i != ss.vertices_end(); ++i )
+	{
+		print_point(i->point());
+		std::cout << std::endl;
+	}
+}
+
+template<class K>
 void print_straight_skeleton( CGAL::Straight_skeleton_2<K> const& ss )
 {
 

@@ -20,6 +20,7 @@ typedef boost::shared_ptr<Ss> SsPtr;
 #define MAX_DOUBLE (std::numeric_limits<double>::max)()
 #define MIN_DOUBLE std::numeric_limits<double>::denorm_min()
 #define PAPER_THRESHOLD 100.0
+#define PPD_THRESHOLD 1
 
 static double minX, minY, maxX, maxY;
 /*

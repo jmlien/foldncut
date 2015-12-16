@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 {
 	//Reading polygon files
 	Polygon_2 poly; QPolygonF poly_qt;	
-	read_file("models/swan.txt", poly, poly_qt);
+	read_file("models/turtle.txt", poly, poly_qt);
 
 	//Compute straight skeleton
 	//*****This program now works for polygon WITHOUT HOLES. 
@@ -21,6 +21,7 @@ int main(int argc, char** argv)
 	//Compute perpendiculars
 	std::list<Segment> ppd;
 	generate_perpendiculars(*iss, *ess, bg, ppd);
+	deduplicate_perpendiculars<K>(ppd);
 	//unique_perpendiculars(ppd);
 
 	//Extracts skeleton from cgal and converts them to qt
