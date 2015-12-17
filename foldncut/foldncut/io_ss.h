@@ -146,7 +146,7 @@ void convert_straight_skeleton( CGAL::Straight_skeleton_2<K> const& ss , std::li
 }
 
 template<class K>
-void convert_perpendiculars(std::list<Segment>& ppd, std::list<QLineF> &perpendiculars)
+void convert_perpendiculars(std::list<Perpendiculars>& ppd, std::list<QLineF> &perpendiculars)
 {
 	if(ppd.empty()) {std::cout << "There is no perpendiculars! Please check perpendiculars again."<< std::endl; return;}
 
@@ -156,7 +156,7 @@ void convert_perpendiculars(std::list<Segment>& ppd, std::list<QLineF> &perpendi
 
 	while(!ppd.empty())
 	{
-		s = ppd.front();
+		s = ppd.front().seg;
 		p = s.vertex(0);
 		opp = s.vertex(1);
 		perpendiculars.push_back(QLineF(opp.x(), opp.y(), p.x(), p.y()));

@@ -8,9 +8,12 @@
 typedef Ss::Vertex_const_iterator Vertex_const_iterator;
 typedef Ss::Vertex::Halfedge_around_vertex_const_circulator Halfedge_around_vertex_const_circulator;
 typedef std::list<Segment>::iterator SEG_I;
+typedef std::list<Perpendiculars>::iterator PER_I;
+
+double ratio;	//diagonal length
 
 template<class K>
-void generate_perpendiculars(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skeleton_2<K> const& ess, std::vector<BridgingGraph> const& bg, std::list<Segment>& ppd)
+void generate_perpendiculars(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skeleton_2<K> const& ess, std::vector<BridgingGraph> const& bg, std::list<Perpendiculars>& ppd)
 {
 	//Argument safty check
 	std::cout << "Genetrating perpendiculars.." << std::endl;
@@ -18,6 +21,8 @@ void generate_perpendiculars(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Stra
 	if(ess.vertices_begin() == ess.vertices_end()) {std::cout << "There is no exterior skeleton. Please check exterior skeleton again"<<std::endl; return;}
 	if(bg.empty()) { std::cout << "There is no bridging graph. Please check bridging graph again." << std::endl; return; }
 	if(!ppd.empty()) ppd.clear();
+
+	ratio = sqrt((maxX-minX)*(maxX-minX)+(maxY-minY)*(maxY-minY));
 
 	//FOR INTERIOR SKELETON
 	//Loop through all the vertices 
@@ -49,7 +54,11 @@ void generate_perpendiculars(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Stra
 						Point intersect_p;
 						if(assign(intersect_p, res_intersect))
 						{
-							ppd.push_back(Segment(skeleton_v, intersect_p));
+							Perpendiculars first_ppd;
+							first_ppd.seg = Segment(skeleton_v, intersect_p);
+							first_ppd.level = 0;
+
+							ppd.push_back(first_ppd);
 							//std::cout << "*******skeleton vertex: "<< skeleton_v.x() <<" " << skeleton_v.y()<<std::endl;
 							perpendicular(iss, ess, bg, ppd,edge_sf->face()->id(),0);
 							break;
@@ -96,7 +105,11 @@ void generate_perpendiculars(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Stra
 							if(skeleton_v.x() < minX - PAPER_THRESHOLD || skeleton_v.x() > maxX + PAPER_THRESHOLD) break;
 							if(skeleton_v.y() < minY - PAPER_THRESHOLD || skeleton_v.y() > maxY + PAPER_THRESHOLD) break;
 							//std::cout << "*******skeleton vertex: "<< skeleton_v.x() <<" " << skeleton_v.y()<<std::endl;
-							ppd.push_back(Segment(skeleton_v, intersect_p));
+							Perpendiculars first_ppd;
+							first_ppd.seg =Segment(skeleton_v, intersect_p);
+							first_ppd.level = 0;
+
+							ppd.push_back(first_ppd);
 							//std::cout << "face id: "<< edge_sf->face()->id() +offset << std::endl;
 							perpendicular(iss, ess, bg, ppd,edge_sf->face()->id() + offset,0);
 							break;
@@ -112,14 +125,14 @@ void generate_perpendiculars(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Stra
 }
 
 template<class K>
-void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skeleton_2<K> const& ess, std::vector<BridgingGraph> const& bg, std::list<Segment>& ppd, int prev_fid, int level)	
+void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skeleton_2<K> const& ess, std::vector<BridgingGraph> const& bg, std::list<Perpendiculars>& ppd, int prev_fid, int level)	
 {
 	//Starts from the perpendicular hits the cutedge with previous skeleton face id information
 	//std::cout << "input fid: "<<prev_fid<<std::endl;
 	//Argument Safety
 	if(ppd.empty())	{std::cout << "Cannot compute perpendiculars recursively. Please check the first rays of give model." <<std::endl; return; }
 
-	Segment last_seg = ppd.back();
+	Segment last_seg = ppd.back().seg;
 	Point last_begin = last_seg.vertex(0);
 	Point last_end = last_seg.vertex(1);	//This point should be on the cutedge.
 
@@ -130,6 +143,8 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 	if(last_end.y() < minY-PAPER_THRESHOLD || last_end.y() > maxY+PAPER_THRESHOLD) return;
 	if(level > 100) return;																	//If the recursive level is greater than 50, terminates.
 	if(prev_fid == -1) { std::cout << "wrong face id" << std::endl; return;}				//Wrong previous face id
+	//	if(ppd_hits_skeleton_vertex(iss, last_end, ratio)) return;
+	//	if(ppd_hits_skeleton_vertex(ess, last_end, ratio)) return;
 
 	BridgingGraph connect_info;								
 
@@ -186,8 +201,13 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 			{
 				//If there is intersection, keep the segment connect from cutedge to skeleton edge
 				normal = Line(edge_ss.vertex(0), edge_ss.vertex(1));
-				Segment perpendicular_first(last_end, incidence_p);
-				ppd.push_back(perpendicular_first);
+
+				Perpendiculars ppd_out;
+				ppd_out.seg = Segment(last_end, incidence_p);
+				ppd_out.level = level++;
+
+				ppd.push_back(ppd_out);
+
 				hits_skeleton_edge = true;
 				break;
 			}else
@@ -200,7 +220,12 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 						//If there is intersection, keep the segment connect from cutedge to skeleton edge
 						normal = Line(edge_ss.vertex(0), edge_ss.vertex(1));
 						Segment perpendicular_first(last_end, incidence_p);
-						ppd.push_back(perpendicular_first);
+
+						Perpendiculars ppd_out;
+						ppd_out.seg = Segment(last_end, incidence_p);
+						ppd_out.level = level++;
+
+						ppd.push_back(ppd_out);
 						hits_skeleton_edge = true;
 						break;
 					}
@@ -216,8 +241,12 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 	//Compute the segment connect from skeleton edge to cutedge
 	Point proj_last_end = normal.projection(last_end);
 	Point reflect_last_end= last_end + 2*(proj_last_end-last_end);
-	Segment perpendicular_second(incidence_p,reflect_last_end);
-	ppd.push_back(Segment(incidence_p,reflect_last_end));
+
+	Perpendiculars ppd_out;
+	ppd_out.seg = Segment(incidence_p,reflect_last_end);
+	ppd_out.level = level++;
+
+	ppd.push_back(ppd_out);
 
 	//Obtain current face id
 	edge_around_face = edge_around_face->opposite();
@@ -237,7 +266,7 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 	BridgingGraph next_b;
 
 	Point hit_p;
-	Segment ppd_candidate = Segment(perpendicular_second);
+	Segment ppd_candidate = Segment(ppd_out.seg);
 	while(1)
 	{
 		//Obtain the cutedge
@@ -255,8 +284,13 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 		{	
 			if(abs((hit_p-ppd_candidate.vertex(1)).squared_length())>1e-16)
 			{
+				level--;
 				ppd.pop_back();
-				ppd.push_back(Segment(ppd_candidate.vertex(0), hit_p));
+
+				Perpendiculars new_ppd;
+				new_ppd.seg = Segment(ppd_candidate.vertex(0), hit_p);
+				new_ppd.level = level++;
+				ppd.push_back(new_ppd);
 			}
 			break;
 		}	
@@ -266,6 +300,8 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 		{
 			if(ppd_candidate.vertex(1).x() < minX-PAPER_THRESHOLD || ppd_candidate.vertex(1).x() > maxX+PAPER_THRESHOLD) return;	//If the new point is outside of the paper, terminates.
 			if(ppd_candidate.vertex(1).y() < minY-PAPER_THRESHOLD || ppd_candidate.vertex(1).y() > maxY+PAPER_THRESHOLD) return;
+			//	if(ppd_hits_skeleton_vertex(iss, ppd_candidate.vertex(1), ratio)) return;
+			//	if(ppd_hits_skeleton_vertex(ess, ppd_candidate.vertex(1), ratio)) return;
 
 			//Find the face using last face data
 			Halfedge_const_handle e_root, e;
@@ -296,9 +332,15 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 							//std::cout << "find new incident point" << new_inc_p.x() << " " << new_inc_p.y()<< std::endl;
 							//std::cout << "original point"<<ppd_candidate.vertex(0).x() << " " << ppd_candidate.vertex(0).y() << std::endl;
 							//std::cout << ppd_candidate.vertex(1).x() << " " << ppd_candidate.vertex(1).y() << std::endl;
+							level--;
 							ppd.pop_back();																		//remove candidate
 							ppd_candidate = Segment(ppd_candidate.vertex(0), new_inc_p);
-							ppd.push_back(ppd_candidate);														//add modified candidate
+
+							Perpendiculars new_ppd;
+							new_ppd.seg = ppd_candidate;
+							new_ppd.level = level++;
+
+							ppd.push_back(new_ppd);														//add modified candidate
 							normal = Line(edge_ss.vertex(0), edge_ss.vertex(1));
 							//std::cout << "line:" <<edge_ss.vertex(0).x()<<" "<<edge_ss.vertex(0).y()<<" "<<edge_ss.vertex(1).x()<<edge_ss.vertex(1).y()<<std::endl;
 							hits_next_skeleton = true;
@@ -322,7 +364,12 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 							Point reflect_p= ppd_candidate.vertex(0) + 2*(proj_p-ppd_candidate.vertex(0));
 							//std::cout << "reflect_p p:"<<reflect_p.x() <<" " <<reflect_p.y()<< std::endl;
 							ppd_candidate = Segment(new_inc_p, reflect_p);
-							ppd.push_back(ppd_candidate);
+
+							Perpendiculars new_second_ppd;
+							new_second_ppd.seg = ppd_candidate;
+							new_second_ppd.level = level++;
+
+							ppd.push_back(new_second_ppd);
 
 							break;
 						}//else std::cout<< "already crossed"<<std::endl;
@@ -336,9 +383,15 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 							if(assign(new_inc_p, res_hit_new)){
 								if(abs((new_inc_p-ppd_candidate.vertex(0)).squared_length())>1e-16)	//and if this point is not on the skeleton edge already crossed, 
 								{	
+									level--;
 									ppd.pop_back();																		//remove candidate
 									ppd_candidate = Segment(ppd_candidate.vertex(0), new_inc_p);
-									ppd.push_back(ppd_candidate);														//add modified candidate
+
+									Perpendiculars new_ppd;
+									new_ppd.seg = ppd_candidate;
+									new_ppd.level = level++;
+
+									ppd.push_back(new_ppd);														//add modified candidate
 									normal = Line(edge_ss.vertex(0), edge_ss.vertex(1));
 									hits_next_skeleton = true;
 
@@ -358,7 +411,12 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 									Point proj_p = normal.projection(ppd_candidate.vertex(0));
 									Point reflect_p= ppd_candidate.vertex(0) + 2*(proj_p-ppd_candidate.vertex(0));
 									ppd_candidate = Segment(new_inc_p, reflect_p);
-									ppd.push_back(ppd_candidate);
+
+									Perpendiculars new_second_ppd;
+									new_second_ppd.seg = ppd_candidate;
+									new_second_ppd.level = level++;
+
+									ppd.push_back(new_second_ppd);
 
 									break;
 								}}
@@ -373,40 +431,101 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 	}
 
 	//Computing perpendiculars recursively
-	perpendicular(iss, ess, bg, ppd, current_fid, ++level);
+	perpendicular(iss, ess, bg, ppd, current_fid, level);
 }
 
 template <class K>
-void deduplicate_perpendiculars(std::list<Segment>& ppd)
+void deduplicate_perpendiculars(std::list<Perpendiculars>& ppd)
 {
-	double ratio = sqrt(pow((maxX-minX),2)+pow((maxY-minY),2));
 
-	//This function is needed because of numerical errors in straight skeleton. 
-	for(SEG_I i = ppd.begin() ; i != ppd.end(); ++i)
-	{	
-		SEG_I j = i; ++j;		
+	//Erase if perpendiculars are too closed. This is due to numerical error from straight skeleton
+	std::cout << "dedpulicate perpendiculars..."<<std::endl;
+
+	for(PER_I i = ppd.begin() ; i != ppd.end(); ++i)
+	{
+		PER_I j = i; ++j;		
 		for( ; j != ppd.end(); ++j)
 		{
-			//Erase if the perpendicular cross each other. Perpendicular which hits the skeleton vertex has highter priority. 
-			//Erase if perpendiculars are too closed. This is due to numerical error from straight skeleton
-
-			if(is_almost_same_segment(Segment(i->vertex(0), i->vertex(1)), Segment(j->vertex(0), j->vertex(1)), ratio * PPD_THRESHOLD)) 
+			if(idential_segment_test(i->seg, j->seg, ratio)) 
 			{
-				//std::cout <<"same vertex:"<< i->vertex(0).x() <<" "<< i->vertex(0).y()<<" "<< i->vertex(1).x() << " " <<i->vertex(1).y() << std::endl;
-				//std::cout <<"erase vertex:"<< j->vertex(0).x()<<" "<< j->vertex(0).y()<<" "<< j->vertex(1).x() << " " <<j->vertex(1).y() << std::endl;
-				if(is_not_exact_same_segment(Segment(i->vertex(0), i->vertex(1)), Segment(j->vertex(0), j->vertex(1)))) {continue;}
-				
+				if(j->level < i->level) 
+				{
+					i = ppd.erase(i);
+					if(i==ppd.end()) break;
+					else
+					{
+						j = i; ++j;
+						continue;
+					}
+				}else if(j -> level == i ->level)
+				{
+					i->seg = Segment(i->seg.vertex(0), j->seg.vertex(0));
+					j = ppd.erase(j);
+					if(j==ppd.end()) break;
+					else continue;
+				}
 				j = ppd.erase(j);
-				if( j== ppd.end()) break;
-				continue;
+				if(j== ppd.end()) break;
+				else continue;
 			}
 		}
 	}
+
+
+	//Erase the broken perpendiculars pieces
+	PER_I j;
+	for(PER_I i = ppd.begin() ; i != ppd.end();++i)
+	{
+		j = i; ++j;
+		if(j == ppd.end()) continue;
+		while(j->level - i->level > 1)
+		{
+			j = ppd.erase(j);
+			if(j == ppd.end()) break;
+		}
+	}
+}
+/*
+template<class K>
+bool ppd_hits_skeleton_vertex(CGAL::Straight_skeleton_2<K> const& ss, Point const& last_end, double epsilon)
+{
+bool hits = false;
+for(Vertex_const_iterator v = ss.vertices_begin(); v != ss.vertices_end(); ++v)
+{
+if(v->is_skeleton()) //if given vertex is a skeleton vertex,
+{
+if(abs((v->point()-last_end).squared_length() < epsilon)) hits = true;
+}
 }
 
-template <class K>
-void assign_mountain_valley(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skeleton_2<K> const& ess, std::list<Segment> const& ppd, std::list<Segment> mt, std::list<Segment> val)
-{
+if(hits) std::cout << "hit"<<std::endl;
 
+return hits;
+}
+*/
+template<class K>
+void MountainValley(Polygon_2& poly, CGAL::Straight_skeleton_2<K> const& ss, std::list<Perpendiculars> const& ppd, std::list<Segment>& mv)
+{
+	std::cout << "Deciding mountain and valley..."<<std::endl;
+	for(Vertex_const_iterator v = ss.vertices_begin(); v != ss.vertices_end(); ++v)
+	{
+		if(v->is_contour()) //if given vertex is a contour vertex,
+		{
+			Halfedge_around_vertex_const_circulator e_root = v->halfedge_around_vertex_begin();
+			Halfedge_around_vertex_const_circulator e = v->halfedge_around_vertex_begin();
+			do
+			{
+				if((*e)->face()->halfedge()->is_bisector())	//if this halfedge around vertex is skeleton, 
+				{
+					if(CGAL::left_turn(v->point(),  ) == 1)
+
+
+				}
+
+			}
+			++e;
+		}while( e != e_root);
+
+	}
 }
 #endif
