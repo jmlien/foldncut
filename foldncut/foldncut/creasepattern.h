@@ -457,12 +457,6 @@ void deduplicate_perpendiculars(std::list<Perpendiculars>& ppd)
 						j = i; ++j;
 						continue;
 					}
-				}else if(j -> level == i ->level)
-				{
-					i->seg = Segment(i->seg.vertex(0), j->seg.vertex(0));
-					j = ppd.erase(j);
-					if(j==ppd.end()) break;
-					else continue;
 				}
 				j = ppd.erase(j);
 				if(j== ppd.end()) break;
@@ -504,28 +498,96 @@ return hits;
 }
 */
 template<class K>
-void MountainValley(Polygon_2& poly, CGAL::Straight_skeleton_2<K> const& ss, std::list<Perpendiculars> const& ppd, std::list<Segment>& mv)
+void MountainValley(Polygon_2 const& poly, CGAL::Straight_skeleton_2<K> const& iss,CGAL::Straight_skeleton_2<K> const& ess, std::vector<BridgingGraph> const &bg, std::list<Perpendiculars> const& ppd, std::list<Segment>& mt, std::list<Segment>& vl)
 {
 	std::cout << "Deciding mountain and valley..."<<std::endl;
-	for(Vertex_const_iterator v = ss.vertices_begin(); v != ss.vertices_end(); ++v)
+
+	Segment in_edge;
+	Segment out_edge;
+
+	std::cout << "poly: "<<poly.size()<<std::endl;
+
+	unsigned int i=0;
+	//INERIOR SKELETON
+	for(Vertex_const_iterator v = iss.vertices_begin(); v != iss.vertices_end(); ++v, ++i)
 	{
 		if(v->is_contour()) //if given vertex is a contour vertex,
 		{
-			Halfedge_around_vertex_const_circulator e_root = v->halfedge_around_vertex_begin();
-			Halfedge_around_vertex_const_circulator e = v->halfedge_around_vertex_begin();
-			do
+			if(i > poly.size()) break;
+
+			if(i == 0)
 			{
-				if((*e)->face()->halfedge()->is_bisector())	//if this halfedge around vertex is skeleton, 
-				{
-					if(CGAL::left_turn(v->point(),  ) == 1)
-
-
-				}
-
+				std::cout << "i: "<<poly.size()-1<<" "<<i<<" "<<i+1<<std::endl;
+				in_edge = Segment(poly.vertex(poly.size()-1), poly.vertex(i));
+				out_edge = Segment(poly.vertex(i), poly.vertex(i+1));
 			}
-			++e;
-		}while( e != e_root);
+			else if(i+1 == poly.size())
+			{
+				std::cout << "i: "<<i-1<<" "<<i<<" "<<i+1<<std::endl;
+				in_edge = Segment(poly.vertex(i-1), poly.vertex(i));
+				out_edge = Segment(poly.vertex(i), poly.vertex(0));
+			}
+			else
+			{
+				std::cout << "i: "<<i-1<<" "<<i<<" "<<i+1<<std::endl;
+				in_edge = Segment(poly.vertex(i-1), poly.vertex(i));
+				out_edge = Segment(poly.vertex(i), poly.vertex(i+1));
+			}
 
-	}
+			if(CGAL::right_turn(in_edge.vertex(0), in_edge.vertex(1), out_edge.vertex(1)))	//mountain
+			{
+				Halfedge_around_vertex_const_circulator e_root = v->halfedge_around_vertex_begin();
+				Halfedge_around_vertex_const_circulator e = v->halfedge_around_vertex_begin();
+
+				do	
+				{
+					if((*e)->is_bisector())
+					{
+						mt.push_back(Segment((*e)->vertex()->point(), (*e)->opposite()->vertex()->point()));
+						/*
+						//Finding exterior skeleton
+						BridgingGraph bgnode;
+						search_bridgegraph<K>(bg, Segment((*e)->vertex()->point(), (*e)->opposite()->vertex()->point()), bgnode);
+						Halfedge_const_handle ex_e, ex_e_root;
+						find_skeleton_face(ess, bgnode.fid_ess,  iss.size_of_faces(),ex_e_root); 
+						ex_e =  Halfedge_const_handle(ex_e_root);
+
+						do{
+							if(ex_e->is_bisector())
+								mt.push_back(Segment(ex_e->vertex()->point(), ex_e->opposite()->vertex()->point()));
+							++ex_e;
+						}while(ex_e != ex_e_root);*/
+					}
+					++e;
+				}while( e != e_root);
+			}
+			else																			//valley
+			{
+				Halfedge_around_vertex_const_circulator e_root = v->halfedge_around_vertex_begin();
+				Halfedge_around_vertex_const_circulator e = v->halfedge_around_vertex_begin();
+				do	
+				{
+					if((*e)->is_bisector())
+					{
+						vl.push_back(Segment((*e)->vertex()->point(), (*e)->opposite()->vertex()->point()));
+						/*
+						//Finding exterior skeleton
+						BridgingGraph bgnode;
+						search_bridgegraph<K>(bg, Segment((*e)->vertex()->point(), (*e)->opposite()->vertex()->point()), bgnode);
+						Halfedge_const_handle ex_e, ex_e_root;
+						find_skeleton_face(ess, bgnode.fid_ess, iss.size_of_faces(),ex_e_root); 
+						ex_e =  Halfedge_const_handle(ex_e_root);
+
+						do{
+							if(ex_e->is_bisector())
+								vl.push_back(Segment(ex_e->vertex()->point(), ex_e->opposite()->vertex()->point()));
+							++ex_e;
+						}while(ex_e != ex_e_root);*/
+					}
+					++e;
+				}while( e != e_root);
+			}
+		}
+	}//FOR
 }
 #endif

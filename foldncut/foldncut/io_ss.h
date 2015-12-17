@@ -49,7 +49,7 @@ void read_file(char* filename, Polygon_2& poly, QPolygonF& qt_poly)
 	f.close();
 }
 
-void createQTscene(QGraphicsScene& s, QPolygonF& poly, std::list<QLineF>& bis, std::list<QLineF>& ppd)
+void createQTscene(QGraphicsScene& s, QPolygonF& poly, std::list<QLineF>& bis, std::list<QLineF>& ppd, std::list<QLineF>& mt, std::list<QLineF>& vl)
 {
 	//Set the coordinates
 	s.setSceneRect(minX-PAPER_THRESHOLD, minY-PAPER_THRESHOLD, width+2*PAPER_THRESHOLD, height+2*PAPER_THRESHOLD);	
@@ -82,7 +82,21 @@ void createQTscene(QGraphicsScene& s, QPolygonF& poly, std::list<QLineF>& bis, s
 		ppd.pop_front();
 	}
 
+	//Draw mountain
+	while(mt.size() !=0 )														
+	{
+		line = mt.front();
+		s.addLine(line, QPen(QBrush(Qt::green), width/300.0));
+		mt.pop_front();
+	}
 
+	//Draw valley
+	while(vl.size() !=0 )														
+	{
+		line = vl.front();
+		s.addLine(line, QPen(QBrush(Qt::yellow), width/300.0));
+		vl.pop_front();
+	}
 }
 
 template<class K>
@@ -100,6 +114,7 @@ void print_straight_skeleton_vertex( CGAL::Straight_skeleton_2<K> const& ss )
 
 	for ( Vertex_const_iterator i = ss.vertices_begin(); i != ss.vertices_end(); ++i )
 	{
+		std::cout << (i->is_contour() ? "contour" : "skeleton") <<std::endl;
 		print_point(i->point());
 		std::cout << std::endl;
 	}
@@ -161,6 +176,27 @@ void convert_perpendiculars(std::list<Perpendiculars>& ppd, std::list<QLineF> &p
 		opp = s.vertex(1);
 		perpendiculars.push_back(QLineF(opp.x(), opp.y(), p.x(), p.y()));
 		ppd.pop_front();
+	}
+}
+
+template<class K>
+void convert_mountain_valley(std::list<Segment>& mtvl, std::list<QLineF> &mtvl_qt)
+{
+	if(mtvl.empty()) {std::cout << "There is no perpendiculars! Please check perpendiculars again."<< std::endl; return;}
+
+	Point opp, p;
+
+	Segment s;
+
+	while(!mtvl.empty())
+	{
+		s = mtvl.front();
+		p = s.vertex(0);
+		opp = s.vertex(1);
+
+		mtvl_qt.push_back(QLineF(opp.x(), opp.y(), p.x(), p.y()));
+
+		mtvl.pop_front();
 	}
 }
 #endif

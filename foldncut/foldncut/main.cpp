@@ -22,6 +22,11 @@ int main(int argc, char** argv)
 	std::list<Perpendiculars> ppd;
 	generate_perpendiculars(*iss, *ess, bg, ppd);
 	deduplicate_perpendiculars<K>(ppd);
+
+	//Assign mountain and valley
+	std::list<Segment> mt;
+	std::list<Segment> vl;
+	MountainValley<K>(poly, *iss, *ess, bg, ppd,  mt, vl);
 	//unique_perpendiculars(ppd);
 
 	//Extracts skeleton from cgal and converts them to qt
@@ -32,13 +37,17 @@ int main(int argc, char** argv)
 	std::list<QLineF> ppd_qt;
 	convert_perpendiculars<K>(ppd, ppd_qt);
 	
+	std::list<QLineF> mt_qt, vl_qt;
+	convert_mountain_valley<K>(mt, mt_qt);
+	convert_mountain_valley<K>(vl, vl_qt);
+	
 	//SETUP QT 
 	//Create applicaiton
 	QApplication app(argc, argv);
 
 	//Create scene
 	QGraphicsScene scene;
-	createQTscene(scene, poly_qt, bis_qt, ppd_qt);
+	createQTscene(scene, poly_qt, bis_qt, ppd_qt, mt_qt, vl_qt);
 
 	//Create view
 	QGraphicsView* view = new QGraphicsView(&scene);

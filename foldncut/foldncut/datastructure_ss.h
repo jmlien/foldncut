@@ -141,7 +141,11 @@ void search_bridgegraph(std::vector<BridgingGraph> const& bg_list, Segment const
 
 	for(I b=bg_list.begin(); b != bg_list.end(); ++b)
 	{
-		if(idential_segment_test(e, b->cut_edge, epsilon)) { bg=b; return;}
+		if(idential_segment_test(e, b->cut_edge, epsilon)) 
+		{ bg.cut_edge=b->cut_edge;
+		bg.fid_ess = b->fid_ess;
+		bg.fid_iss = b->fid_iss;
+		return;}
 	}
 }
 
