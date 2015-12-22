@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 {
 	//Reading polygon files
 	Polygon_2 poly; QPolygonF poly_qt;	
-	read_file("models/turtle.txt", poly, poly_qt);
+	read_file("models/turtle_w.txt", poly, poly_qt);
 
 	//Compute straight skeleton
 	//*****This program now works for polygon WITHOUT HOLES. 
@@ -31,13 +31,12 @@ int main(int argc, char** argv)
 	//Compute perpendiculars
 	std::list<Perpendiculars> ppd;
 	generate_perpendiculars(*iss, *ess, bg, ppd);
-	//deduplicate_perpendiculars<K>(ppd);
+	deduplicate_perpendiculars<K>(ppd);
 
 	//Assign mountain and valley
 	std::list<Segment> mt;
 	std::list<Segment> vl;
 	MountainValley<K>(*iss, *ess, bg, ppd,  mt, vl);
-	//unique_perpendiculars(ppd);
 
 	//Extracts skeleton from cgal and converts them to qt
 	std::list<QLineF> bis_qt;

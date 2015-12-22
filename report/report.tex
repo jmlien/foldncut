@@ -147,10 +147,18 @@ The algorithm is as follows,\\
 \> o The perpendicular of  p contains $m$ and the perpendiculars of the end points of $m$\\
 \end{tabbing}
 
+The data structure of generating perpendiculars is shown in Fig. \ref{fig:ppdAlg}. The green line is flow to generate real perpendiculars and the orange line is flow to generate imaginary perpendiculars. We make the structure which contains connected information between interior skeleton and exterior skeleton, called bridging graph.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{FIGS/Part2/ppd}
+\caption{Computing perpendiculars.}
+\label{fig:ppdAlg}
+\end{figure}
+
 As an example, straight skeleton drawing and perpendiculars are shown for a simple square shape in fig \ref{fig:square}.
 \begin{figure}[H]
 \centering
-\includegraphics[width=.5\textwidth]{FIGS/Part2/square}
+\includegraphics[width=.4\textwidth]{FIGS/Part2/square}
 \caption{Straight Skeleton and perpendiculars for a square shape}
 \label{fig:square}
 \end{figure}
@@ -174,15 +182,190 @@ We have used CGAL $right\_turn$ function to decide mountain or valley crease. As
 \label{fig:mv}
 \end{figure}
 
-\section{Degenerate Cases}
-
 \section{Example Outputs}
+These are example outputs of our program. From Fig .\ref{fig:simple_example1} to Fig .\ref{fig:complex_example2}, (a) represents the original input polygon. The straight skeleton of given polygon is marked as red line in (b). (c) is the result of computing perpendiculars, which is marked as blue line. For perpendiculars, we should remove some duplicated edges due to numerical error and the result is shown as (d). More details about deduplication is in next section. (e) shows the crease pattern of straight skeleton line. The green lines are mountain and the yellow lines are valley.
+%%simple example 1
+\begin{figure}[H]
+\centering
+  \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/s10}
+    \caption{}
+    \label{fig:s10}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/s11}
+     \caption{}
+     \label{fig:s11}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/s12}
+     \caption{}
+     \label{fig:s12}
+  \end{subfigure}
+      \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/s13}
+     \caption{}
+     \label{fig:s13}
+  \end{subfigure}
+      \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/s14}
+     \caption{}
+     \label{fig:s14}
+  \end{subfigure}
+    \caption{Simple polygon example 1 : star}
+    \label{fig:simple_example1}
+\end{figure}
+%%simple example 2
+\begin{figure}[H]
+\centering
+  \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/s20}
+     \caption{}
+    \label{fig:s20}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/s21}
+     \caption{}
+     \label{fig:s21}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/s22}
+     \caption{}
+     \label{fig:s22}
+  \end{subfigure}
+      \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/s23}
+     \caption{}
+     \label{fig:s23}
+  \end{subfigure}
+      \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/s24}
+     \caption{}
+     \label{fig:s24}
+  \end{subfigure}
+    \caption{Simple polygon example 2 : square}
+    \label{fig:simple_example2}
+\end{figure}
+%%complex example 1
+\begin{figure}[H]
+\centering
+  \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/c10}
+     \caption{}
+    \label{fig:c10}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/c11}
+     \caption{}
+     \label{fig:c11}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/c12}
+     \caption{}
+     \label{fig:c12}
+  \end{subfigure}
+      \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/c13}
+     \caption{}
+     \label{fig:c13}
+  \end{subfigure}
+      \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/c14}
+     \caption{}
+     \label{fig:c14}
+  \end{subfigure}
+    \caption{complex polygon example 1 : swan}
+    \label{fig:complex_example1}
+\end{figure}
+%%simple example 2
+\begin{figure}[H]
+\centering
+  \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/c20}
+    \label{fig:c20}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/c21}
+     \label{fig:c21}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/c22}
+     \label{fig:c22}
+  \end{subfigure}
+      \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/c23}
+     \label{fig:c23}
+  \end{subfigure}
+      \begin{subfigure}[b]{0.18\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/c24}
+     \label{fig:c24}
+  \end{subfigure}
+    \caption{complex polygon example 2 : turtle}
+    \label{fig:complex_example2}
+\end{figure}
+We implemented crease pattern correctly only with interior skeleton. In case of exterior skeleton, some creases are wrong or missing(Marked as red square in Fig. \ref{fig:crease}.)
+ \begin{figure}[H]
+\centering
+  \begin{subfigure}[b]{0.28\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/cr_w}
+    \caption{}
+    \label{fig:crease01}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part4/cr_m}
+    \caption{}
+     \label{fig:crease02}
+  \end{subfigure}
+    \caption{crease pattern of polygons. Green lines mean mountain and yellow lines mean valley.}
+    \label{fig:crease}
+\end{figure}
 
 \section{Known bugs/limitations}
-The program requires CGAL and boost library static compilation. Qt is required to view the results. The current implementation uses visual studio 2010 platform. \\
-The input polygons are drawn in clockwise order and the implementation works for convex or non-convex shapes with no holes.\\
-
-
+The program requires CGAL and boost library static compilation. Qt is required to view the results. The current implementation uses visual studio 2010 platform. The input polygons are drawn in clockwise order and the implementation works for convex or non-convex shapes with no holes.\\
+Our program have bugs and limitations due to several fundamental problems. The first problem is about computing straight skeleton. According to \cite{CGALss}, skeleton vertex will be merged if two points are very closed to each other, but it turns out that some points are not merged. The star shape in Fig. \ref{fig:bug}.(a) is symmetric with respect to vertical half line, but there are two skeleton vertex(marked as red square) and the distance between them is less than 1e-31. Furthermore, if we change some length of edges keeping symmetry, straight skeleton function returns weird results such as the edge pointed by blue arrow in Fig. \ref{fig:bug}.(b).
+ \begin{figure}[H]
+\centering
+  \begin{subfigure}[b]{0.28\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part5/smallstar}
+    \caption{}
+    \label{fig:bug01}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part5/turtle}
+    \caption{}
+     \label{fig:bug02}
+  \end{subfigure}
+    \caption{Bugs of straight skeleton.}
+    \label{fig:bug}
+\end{figure}
+This problem also causes incorrect results in computing perpendiculars. The perpendiculars pointed by yellow arrow in Fig. \ref{fig:deduplication}.(a) and \ref{fig:deduplication}.(c) are duplicated many times. In addition to unmerged points, the numerical error is accumulated as the algorithm finds new perpendiculars recursively. Therefore, we should erase perpendiculars which is thought to be the same perpendicular. Fig. \ref{fig:deduplication}.(b) and Fig. \ref{fig:deduplication}.(d) are results of deduplication. However, this measure causes other problems such as face which has two perpendiculars or unconnected perpendiculars (Marked as green circle in Fig. \ref{fig:deduplication}.(d)). This is because it is also hard to determined which perpendiculars are same or not with numerical errors.\\
+Unmerged vertex also obstruct the algorithm to obtain accurate vertex information. Straight skeleton vertex can have the odd number of edges around the vertex after generating perpendiculars(Marked as green circle in Fig. \ref{fig:deduplication}.(b)), but it is hard to obtain the total degree of the skeleton vertex.
+ \begin{figure}[H]
+\centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part5/dup1}
+    \caption{}
+    \label{fig:dd01}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part5/dedup1}
+    \caption{}
+     \label{fig:dd02}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part5/dup2}
+    \caption{}
+    \label{fig:dd03}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part5/dedup2}
+    \caption{}
+     \label{fig:dd04}
+  \end{subfigure}
+    \caption{Bugs of perpendiculars.}
+    \label{fig:deduplication}
+\end{figure}
+The other problem is data structure which only bridges few primitives. Our approach only connects interior skeleton face and exterior skeleton face which are incident to cut edge. It increases the amount of computation to access data, because we need to take a long way around to access specific primitives. If we had bridging all the primitives in exterior skeleton and interior skeleton, we could have reduced the computation. Imprecise function in CGAL increases the computation, too. Moreover, if we had considered the order of primitives in CGAL, we could have expected less computational time.
 
 \bibliographystyle{plain}
 \bibliography{report}

@@ -187,7 +187,7 @@ void convert_perpendiculars(std::list<Perpendiculars>& ppd, std::list<QLineF> &p
 template<class K>
 void convert_mountain_valley(std::list<Segment>& mtvl, std::list<QLineF> &mtvl_qt)
 {
-	if(mtvl.empty()) {std::cout << "There is no perpendiculars! Please check perpendiculars again."<< std::endl; return;}
+	if(mtvl.empty()) {std::cout << "There is no mt and vl! Please check mt and vl again."<< std::endl; return;}
 
 	Point opp, p;
 
