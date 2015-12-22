@@ -5,12 +5,13 @@
 
 #include <CGAL/circulator.h>
 
-//For Stitched Graph
-
+//For Bridging Graph
 typedef Polygon_2::Edge_const_circulator Edge_const_circulator;
 typedef Ss::Halfedge_const_iterator Halfedge_const_iterator ;
 typedef Ss::Halfedge_handle Halfedge_handle;
 typedef Ss::Halfedge_const_handle Halfedge_const_handle;
+typedef Ss::Face_const_handle Face_const_handle;
+typedef Ss::Face_handle Face_handle;
 
 typedef struct BridgingGraph
 {
@@ -95,6 +96,7 @@ void construct_bridging_graph(Polygon_2& poly, CGAL::Straight_skeleton_2<K> cons
 	}while( e != root);
 
 }
+
 //This function finds the face id of exterior skeleton and interior skeleton contains the cut edge
 template<class K>
 int find_skeleton_face_id(CGAL::Straight_skeleton_2<K> const& ss, Segment& seg, int offset)
@@ -131,27 +133,34 @@ void find_skeleton_face(CGAL::Straight_skeleton_2<K> const& ss, int const& fid, 
 		--n;
 	}
 	edge_ss = f->halfedge();
-	//std::cout << "Face #" << f->id() << ": "<< f->halfedge()->vertex()->point().x() << " " <<f->halfedge()->vertex()->point().y() <<", "<< f->halfedge()->opposite()->vertex()->point().x() <<" "<<f->halfedge()->opposite()->vertex()->point().y() << std::endl;
 }
+
 template<class K>
 void search_bridgegraph(std::vector<BridgingGraph> const& bg_list, Segment const& e, BridgingGraph& bg)
 {
 	//***** This function can be improved, because of special order in CGAL datastructure
+	bool found = false;
 	double epsilon = 1e-16;
 
 	for(I b=bg_list.begin(); b != bg_list.end(); ++b)
 	{
 		if(idential_segment_test(e, b->cut_edge, epsilon)) 
-		{ bg.cut_edge=b->cut_edge;
-		bg.fid_ess = b->fid_ess;
-		bg.fid_iss = b->fid_iss;
-		return;}
+		{ 
+			bg.cut_edge=b->cut_edge;
+			bg.fid_ess = b->fid_ess;
+			bg.fid_iss = b->fid_iss;
+
+			found = true;
+			return;
+		}
 	}
+	if(!found) std::cout << "Cannot find matched bridging graph!" << std::endl;
 }
 
 template<class K>
-void search_bridgegraph(std::vector<BridgingGraph> const& bg_list, int const& fid, int const& offset, BridgingGraph& bg)
+bool search_bridgegraph(std::vector<BridgingGraph> const& bg_list, int const& fid, int const& offset, BridgingGraph& bg)
 {
+	bool found = false;
 	//SEARCH ON EXTERIOR SKELTON
 	if( offset != 0)
 	{
@@ -162,7 +171,9 @@ void search_bridgegraph(std::vector<BridgingGraph> const& bg_list, int const& fi
 				bg.cut_edge = b->cut_edge;
 				bg.fid_ess = b->fid_ess;
 				bg.fid_iss = b->fid_iss;
-				return;
+
+				found = true;
+				break;
 			}
 		}
 	}
@@ -176,9 +187,12 @@ void search_bridgegraph(std::vector<BridgingGraph> const& bg_list, int const& fi
 				bg.cut_edge = b->cut_edge;
 				bg.fid_ess = b->fid_ess;
 				bg.fid_iss = b->fid_iss;
-				return;
+
+				found = true;
+				break;
 			}
 		}
 	}
+	return found;
 }
 #endif

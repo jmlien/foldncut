@@ -1,0 +1,192 @@
+\documentclass[11pt]{article}
+
+\usepackage{latexsym}
+\usepackage{algorithm,algpseudocode}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{pseudocode}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage[backref, colorlinks=true, citecolor=red, urlcolor=blue, pdfauthor={Jyh-Ming Lien}]{hyperref}
+\usepackage{float}
+\usepackage{multirow}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf } \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{#4}{#1}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{assumption}[theorem]{Assumption}
+
+% 1-inch margins, from fullpage.sty by H.Partl, Version 2, Dec. 15, 1988.
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+\textheight 8.9in
+\oddsidemargin 0pt
+\evensidemargin \oddsidemargin
+\marginparwidth 0.5in
+\textwidth 6.5in
+
+\parindent 0in
+\parskip 1.5ex
+%\renewcommand{\baselinestretch}{1.25}
+
+\begin{document}
+
+\lecture{Final Project Report}{Fall 2015}{Kiran Nasim, Yeojin Kim}{Advance Algorithm Programming}
+
+\section{Summary of Fold and Cut}
+The fold and cut theorem says that any shape with straight sides can be folded flat and created with a single straight cut.
+\subsection{Details of Straight-Skeleton Method}
+The algorithm by Demaine and Lubiw\cite{demaine} computes a crease pattern that produces a flat origami which can be created with one cut. Fold and cut method introduced by them, involves three main steps,
+\begin{enumerate}
+\item Computing straight-skeleton
+\item Computing perpendiculars
+\item Deciding Mountain/Valley fold
+\end{enumerate}
+The straight skeleton is the continuous shrinking processing of edges the shrunk edges remain parallel to the original edges.
+Trajectory of the vertices as we shrink the faces is to be noted and when any of these moving vertices collides with a non-adjacent edge, the polygon is split in two and the shrinking process continues for separated polygons.
+The shrunk edges remain parallel to the original edges until edges shrink to zero length.
+
+\subsection{Limitations of Straight-Skeleton Method}
+Although the method works well for any straight line drawing with or without holes, closed or open, convex or non-convex but the crease pattern can be very complex even for simple line drawings.\\
+The method works for any type of straight line drawing but at present there is only one implementation present for fold n cut.
+
+
+\subsection{Comparison between different fold and cut methods}
+There are two general methods at present to solve fold and cut problem, straight-skeleton and disk-packing method. Straight-skeleton method is related to TreeMaker but TreeMaker method works only for convex polygons where as straight skeleton method can solve non-convex and disconnected polygons also.\\\\
+Disk-packing method is an inspiration from fold and cut method where for each vertex a disk is created centered at the vertex, the disks should be non-overlapping. In this way the desired cuts can be obtained by combing together all the radii of disks. There may be a need of adding more edges between center of touching disks  to have triangles and quadrangles which can be folded. The method is still unimplemented completely and it is not shown that how to transform the crease pattern into flat folding so it is still unknown if shape is actually flat foldable to be created by one cut. Moreover the disk-packing method has impractical computation time.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Implementation Details}
+\subsection{Straight-Skeleton }
+In this implementation CGAL library is used for computing straight-skeleton for polygons with no holes. CGAL package represents a straight skeleton as a specialized Halfedge Data Structure (HDS). A halfedge is actually a handle wrapping the body which implements either an edge or a bisector. The method works for both convex or non-convex polygons.\\\\
+Roughly, the algorithm can be written as follow \cite{cacciola},
+\begin{tabbing}
+tabs \= tabs \= tabs  \kill
+1. \emph{Initialization} \\
+\> Compute initial angular contour bisectors. \\
+\>Compute initial Events, placing them in a priority queue ordered by their instants \\
+\> \> The Split Events for all reflex contour bisectors.\\
+\> \> The initial set of Edge Events for all consecutive intersecting contour bisectors.\\
+2. \emph{Propagation} \\ \> Process each Event in turn. \\ \>\>This processing generates new bisectors which in turn produce new EdgeEvents.
+\end{tabbing}
+The straight-skeleton data structure is shown in figure \ref{fig:SSstruc}. The vertices of the contours can only by traced from the straight skeleton data structure by circulating the border halfedges, and the resulting vertex sequence will be reversed w.r.t the input vertex sequence. The defining contour halfedges and incident halfedges around a vertex can be traced using the circulators provided by the vertex class \cite{CGALss}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{FIGS/Part1/fig6}
+\caption{Straight Skeleton Data Structure}
+\label{fig:SSstruc}
+\end{figure}
+
+The data structure is used to create new data structures for the next step i.e. computing perpendiculars. Qt library is used to draw the results graphically.
+\\We have used CGAL functions $create\_interior\_straight\_skeleton\_2()$ and $create\_exterior\_straight\_skeleton\_2()$ to have interior and exterior skeletons, shown in figure \ref{fig:swan}.
+\begin{figure}[H]
+\centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part1/iss}
+    \caption{Interior(showing s skeleton face)}
+    \label{fig:1}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part1/ess}
+    \caption{Exterior}
+     \label{fig:2}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{FIGS/Part1/swan}
+    \caption{Interior+Exterior}
+     \label{fig:3}
+  \end{subfigure}
+    \caption{Straight Skeleton}
+    \label{fig:swan}
+\end{figure}
+
+
+\subsection{Perpendiculars}
+The straight line is not foldable by itself since the vertices can have degree three. Therefore, more crease lines are needed and to have these lines, from each vertex of the straight skeleton, we shoot a ray perpendicular to each cut edge in the face associated with vertex, this ray should reflects if it hits a skeleton edge but passes straight through a cut edge.\\\\
+There are two types of perpendiculars.
+\begin{enumerate}
+\item \emph{Real Perpendicular:} The perpendiculars that are incident to a skeleton vertex are real perpendiculars.
+\item \emph{Imaginary Perpendicular:} All other perpendiculars belong to this category.
+\end{enumerate}
+
+\begin{tabbing}
+tabs \= tabs \= tabs  \kill
+The algorithm is as follows,\\
+\> o Let $p$ be a point in a closed skeleton face $f$\\
+\> o Let $l$ be a line containing p and perpendicular to the cut edge contained in $f$\\
+\> o Let $m$ be $(p \cap l)$ that touches $f$\\
+\> o The perpendicular of  p contains $m$ and the perpendiculars of the end points of $m$\\
+\end{tabbing}
+
+As an example, straight skeleton drawing and perpendiculars are shown for a simple square shape in fig \ref{fig:square}.
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{FIGS/Part2/square}
+\caption{Straight Skeleton and perpendiculars for a square shape}
+\label{fig:square}
+\end{figure}
+ It can be seen that perpendiculars originate from straight skeleton vertex and passes straight through cut edge, in case if perpendiculars hit another skeleton edge they reflect perpendicularly again.
+
+
+\subsection{Mountain and Valley}
+A folding angle of $\pi$
+$(-180^\circ)$ is called a Mountain and a folding angle of $-\pi$ $(-180^\circ)$ is called a Valley.\\
+These are specific assignments to edges in the crease pattern to assign mountain or valley fold \cite{MV}:
+\begin{itemize}
+  \item All cut edges are Valley.
+  \item Skeleton edge is mountain if it bisects convex angle, valley if it bisects reflex angle.
+  \item Perpendiculars start out as valley if incident to a convex vertex, else mountain but they alternate between mountain and valley every time they bounce.
+\end{itemize}
+We have used CGAL $right\_turn$ function to decide mountain or valley crease. As shown in figure below, \cite{biunno}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{FIGS/Part2/mv}
+\caption{Assigning Mountain(dashed)/Valley(dotted)}
+\label{fig:mv}
+\end{figure}
+
+\section{Degenerate Cases}
+
+\section{Example Outputs}
+
+\section{Known bugs/limitations}
+The program requires CGAL and boost library static compilation. Qt is required to view the results. The current implementation uses visual studio 2010 platform. \\
+The input polygons are drawn in clockwise order and the implementation works for convex or non-convex shapes with no holes.\\
+
+
+
+\bibliographystyle{plain}
+\bibliography{report}
+
+\end{document}
+
+

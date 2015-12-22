@@ -1,3 +1,13 @@
+/*
+	Project : fold n cut
+
+	This project works with polygon without holes. 
+
+
+	Dependency : CGAL 4.7 (libQGLViewer 2.6.3)
+				 Qt 5.5 
+*/
+
 #include "io_ss.h"
 #include "creasepattern.h"
 
@@ -7,7 +17,7 @@ int main(int argc, char** argv)
 {
 	//Reading polygon files
 	Polygon_2 poly; QPolygonF poly_qt;	
-	read_file("models/swan.txt", poly, poly_qt);
+	read_file("models/turtle.txt", poly, poly_qt);
 
 	//Compute straight skeleton
 	//*****This program now works for polygon WITHOUT HOLES. 
@@ -21,12 +31,12 @@ int main(int argc, char** argv)
 	//Compute perpendiculars
 	std::list<Perpendiculars> ppd;
 	generate_perpendiculars(*iss, *ess, bg, ppd);
-	deduplicate_perpendiculars<K>(ppd);
+	//deduplicate_perpendiculars<K>(ppd);
 
 	//Assign mountain and valley
 	std::list<Segment> mt;
 	std::list<Segment> vl;
-	MountainValley<K>(poly, *iss, *ess, bg, ppd,  mt, vl);
+	MountainValley<K>(*iss, *ess, bg, ppd,  mt, vl);
 	//unique_perpendiculars(ppd);
 
 	//Extracts skeleton from cgal and converts them to qt
@@ -55,7 +65,8 @@ int main(int argc, char** argv)
 	view->installEventFilter(&nav);
 	view->viewport()->installEventFilter(&nav);
 	view->setRenderHint(QPainter::Antialiasing);
-
+	//view->keyPressEvent();
+	
 	//Show view
 	view->show();
 

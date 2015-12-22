@@ -143,8 +143,6 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 	if(last_end.y() < minY-PAPER_THRESHOLD || last_end.y() > maxY+PAPER_THRESHOLD) return;
 	if(level > 100) return;																	//If the recursive level is greater than 50, terminates.
 	if(prev_fid == -1) { std::cout << "wrong face id" << std::endl; return;}				//Wrong previous face id
-	//	if(ppd_hits_skeleton_vertex(iss, last_end, ratio)) return;
-	//	if(ppd_hits_skeleton_vertex(ess, last_end, ratio)) return;
 
 	BridgingGraph connect_info;								
 
@@ -202,11 +200,11 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 				//If there is intersection, keep the segment connect from cutedge to skeleton edge
 				normal = Line(edge_ss.vertex(0), edge_ss.vertex(1));
 
-				Perpendiculars ppd_out;
-				ppd_out.seg = Segment(last_end, incidence_p);
-				ppd_out.level = level++;
+				Perpendiculars real_ppd;
+				real_ppd.seg = Segment(last_end, incidence_p);
+				real_ppd.level = level++;
 
-				ppd.push_back(ppd_out);
+				ppd.push_back(real_ppd);
 
 				hits_skeleton_edge = true;
 				break;
@@ -221,11 +219,11 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 						normal = Line(edge_ss.vertex(0), edge_ss.vertex(1));
 						Segment perpendicular_first(last_end, incidence_p);
 
-						Perpendiculars ppd_out;
-						ppd_out.seg = Segment(last_end, incidence_p);
-						ppd_out.level = level++;
+						Perpendiculars real_ppd;
+						real_ppd.seg = Segment(last_end, incidence_p);
+						real_ppd.level = level++;
 
-						ppd.push_back(ppd_out);
+						ppd.push_back(real_ppd);
 						hits_skeleton_edge = true;
 						break;
 					}
@@ -242,11 +240,11 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 	Point proj_last_end = normal.projection(last_end);
 	Point reflect_last_end= last_end + 2*(proj_last_end-last_end);
 
-	Perpendiculars ppd_out;
-	ppd_out.seg = Segment(incidence_p,reflect_last_end);
-	ppd_out.level = level++;
+	Perpendiculars unknown_ppd;
+	unknown_ppd.seg = Segment(incidence_p,reflect_last_end);
+	unknown_ppd.level = level++;
 
-	ppd.push_back(ppd_out);
+	ppd.push_back(unknown_ppd);
 
 	//Obtain current face id
 	edge_around_face = edge_around_face->opposite();
@@ -257,8 +255,6 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 		else
 			current_fid = edge_around_face->face()->id()+offset;
 	}
-	//	else current_fid = -1;
-	//	if(current_fid == -1) return;
 	//std::cout << "middle2 face: "<<current_fid<<std::endl;
 
 	//Make sure if this segment hits the cutedge. If not, make a segment hits straight skeleton
@@ -266,12 +262,19 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 	BridgingGraph next_b;
 
 	Point hit_p;
-	Segment ppd_candidate = Segment(ppd_out.seg);
+	Segment ppd_candidate = Segment(unknown_ppd.seg);
 	while(1)
 	{
 		//Obtain the cutedge
-		if( current_fid >= offset)	search_bridgegraph<K>(bg, current_fid, offset, next_b);
-		else						search_bridgegraph<K>(bg, current_fid, 0, next_b);
+		if( current_fid >= offset)	
+		{
+			bool found = search_bridgegraph<K>(bg, current_fid, offset, next_b);
+			if(!found) return;
+		}
+		else						
+		{
+			search_bridgegraph<K>(bg, current_fid, 0, next_b);
+		}
 		//std::cout <<"while  current face id : "<< current_fid<<std::endl;
 		//std::cout <<"current ppd:"<<ppd_candidate.vertex(0).x() << " " <<ppd_candidate.vertex(0).y() << " "<< ppd_candidate.vertex(1).x() << " " <<ppd_candidate.vertex(1).y()<<std::endl;
 
@@ -287,21 +290,20 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 				level--;
 				ppd.pop_back();
 
-				Perpendiculars new_ppd;
-				new_ppd.seg = Segment(ppd_candidate.vertex(0), hit_p);
-				new_ppd.level = level++;
-				ppd.push_back(new_ppd);
+				Perpendiculars real_ppd;
+				real_ppd.seg = Segment(ppd_candidate.vertex(0), hit_p);
+				real_ppd.level = level++;
+				ppd.push_back(real_ppd);
 			}
 			break;
 		}	
-		//if(CGAL::do_intersect(next_b.cut_edge, new_incident_ray))
-		//	break;
 		else								//if this candidate doesn't hit cut edge, find other skeleton edge which intersect with it
 		{
+			if(ppd_candidate.vertex(0).x() < minX-PAPER_THRESHOLD || ppd_candidate.vertex(0).x() > maxX+PAPER_THRESHOLD) {ppd.pop_back(); return;}	//If the new point is outside of the paper, terminates.
+			if(ppd_candidate.vertex(0).y() < minY-PAPER_THRESHOLD || ppd_candidate.vertex(0).y() > maxY+PAPER_THRESHOLD) {ppd.pop_back(); return;}
+
 			if(ppd_candidate.vertex(1).x() < minX-PAPER_THRESHOLD || ppd_candidate.vertex(1).x() > maxX+PAPER_THRESHOLD) return;	//If the new point is outside of the paper, terminates.
 			if(ppd_candidate.vertex(1).y() < minY-PAPER_THRESHOLD || ppd_candidate.vertex(1).y() > maxY+PAPER_THRESHOLD) return;
-			//	if(ppd_hits_skeleton_vertex(iss, ppd_candidate.vertex(1), ratio)) return;
-			//	if(ppd_hits_skeleton_vertex(ess, ppd_candidate.vertex(1), ratio)) return;
 
 			//Find the face using last face data
 			Halfedge_const_handle e_root, e;
@@ -336,11 +338,11 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 							ppd.pop_back();																		//remove candidate
 							ppd_candidate = Segment(ppd_candidate.vertex(0), new_inc_p);
 
-							Perpendiculars new_ppd;
-							new_ppd.seg = ppd_candidate;
-							new_ppd.level = level++;
+							Perpendiculars imaginary_ppd;
+							imaginary_ppd.seg = ppd_candidate;
+							imaginary_ppd.level = level++;
 
-							ppd.push_back(new_ppd);														//add modified candidate
+							ppd.push_back(imaginary_ppd);														//add modified candidate
 							normal = Line(edge_ss.vertex(0), edge_ss.vertex(1));
 							//std::cout << "line:" <<edge_ss.vertex(0).x()<<" "<<edge_ss.vertex(0).y()<<" "<<edge_ss.vertex(1).x()<<edge_ss.vertex(1).y()<<std::endl;
 							hits_next_skeleton = true;
@@ -365,11 +367,11 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 							//std::cout << "reflect_p p:"<<reflect_p.x() <<" " <<reflect_p.y()<< std::endl;
 							ppd_candidate = Segment(new_inc_p, reflect_p);
 
-							Perpendiculars new_second_ppd;
-							new_second_ppd.seg = ppd_candidate;
-							new_second_ppd.level = level++;
+							Perpendiculars imaginary_ppd_2;
+							imaginary_ppd_2.seg = ppd_candidate;
+							imaginary_ppd_2.level = level++;
 
-							ppd.push_back(new_second_ppd);
+							ppd.push_back(imaginary_ppd_2);
 
 							break;
 						}//else std::cout<< "already crossed"<<std::endl;
@@ -387,11 +389,11 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 									ppd.pop_back();																		//remove candidate
 									ppd_candidate = Segment(ppd_candidate.vertex(0), new_inc_p);
 
-									Perpendiculars new_ppd;
-									new_ppd.seg = ppd_candidate;
-									new_ppd.level = level++;
+									Perpendiculars imaginary_ppd;
+									imaginary_ppd.seg = ppd_candidate;
+									imaginary_ppd.level = level++;
 
-									ppd.push_back(new_ppd);														//add modified candidate
+									ppd.push_back(imaginary_ppd);														//add modified candidate
 									normal = Line(edge_ss.vertex(0), edge_ss.vertex(1));
 									hits_next_skeleton = true;
 
@@ -412,16 +414,16 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 									Point reflect_p= ppd_candidate.vertex(0) + 2*(proj_p-ppd_candidate.vertex(0));
 									ppd_candidate = Segment(new_inc_p, reflect_p);
 
-									Perpendiculars new_second_ppd;
-									new_second_ppd.seg = ppd_candidate;
-									new_second_ppd.level = level++;
+									Perpendiculars imaginary_ppd_2;
+									imaginary_ppd_2.seg = ppd_candidate;
+									imaginary_ppd_2.level = level++;
 
-									ppd.push_back(new_second_ppd);
+									ppd.push_back(imaginary_ppd_2);
 
 									break;
-								}}
+								}
+							}
 						}
-						//std::cout << "no intersect"<<std::endl;
 					}
 				}
 				e = e->next();
@@ -429,7 +431,6 @@ void perpendicular(CGAL::Straight_skeleton_2<K> const& iss, CGAL::Straight_skele
 			if(!hits_next_skeleton) return;
 		}	//CANDIDATE DOESN'T HIT CUT EDGE
 	}
-
 	//Computing perpendiculars recursively
 	perpendicular(iss, ess, bg, ppd, current_fid, level);
 }
@@ -479,115 +480,152 @@ void deduplicate_perpendiculars(std::list<Perpendiculars>& ppd)
 		}
 	}
 }
-/*
-template<class K>
-bool ppd_hits_skeleton_vertex(CGAL::Straight_skeleton_2<K> const& ss, Point const& last_end, double epsilon)
-{
-bool hits = false;
-for(Vertex_const_iterator v = ss.vertices_begin(); v != ss.vertices_end(); ++v)
-{
-if(v->is_skeleton()) //if given vertex is a skeleton vertex,
-{
-if(abs((v->point()-last_end).squared_length() < epsilon)) hits = true;
-}
-}
 
-if(hits) std::cout << "hit"<<std::endl;
-
-return hits;
-}
-*/
 template<class K>
-void MountainValley(Polygon_2 const& poly, CGAL::Straight_skeleton_2<K> const& iss,CGAL::Straight_skeleton_2<K> const& ess, std::vector<BridgingGraph> const &bg, std::list<Perpendiculars> const& ppd, std::list<Segment>& mt, std::list<Segment>& vl)
+void MountainValley(CGAL::Straight_skeleton_2<K> const& iss,CGAL::Straight_skeleton_2<K> const& ess, std::vector<BridgingGraph> const &bg, std::list<Perpendiculars> const& ppd, std::list<Segment>& mt, std::list<Segment>& vl)
 {
+	//**** can remove polygon
 	std::cout << "Deciding mountain and valley..."<<std::endl;
 
 	Segment in_edge;
 	Segment out_edge;
 
-	std::cout << "poly: "<<poly.size()<<std::endl;
-
-	unsigned int i=0;
-	//INERIOR SKELETON
-	for(Vertex_const_iterator v = iss.vertices_begin(); v != iss.vertices_end(); ++v, ++i)
+	//LOOP INERIOR SKELETON
+	for(Vertex_const_iterator v = iss.vertices_begin(); v != iss.vertices_end(); ++v)
 	{
+		//FOR VERTEX ON BOUNDARY
 		if(v->is_contour()) //if given vertex is a contour vertex,
 		{
-			if(i > poly.size()) break;
+			Vertex_const_iterator prev_v = v->prev_link;
+			Vertex_const_iterator next_v = v->next_link;
 
-			if(i == 0)
+			if(next_v->is_skeleton())
 			{
-				std::cout << "i: "<<poly.size()-1<<" "<<i<<" "<<i+1<<std::endl;
-				in_edge = Segment(poly.vertex(poly.size()-1), poly.vertex(i));
-				out_edge = Segment(poly.vertex(i), poly.vertex(i+1));
-			}
-			else if(i+1 == poly.size())
-			{
-				std::cout << "i: "<<i-1<<" "<<i<<" "<<i+1<<std::endl;
-				in_edge = Segment(poly.vertex(i-1), poly.vertex(i));
-				out_edge = Segment(poly.vertex(i), poly.vertex(0));
-			}
-			else
-			{
-				std::cout << "i: "<<i-1<<" "<<i<<" "<<i+1<<std::endl;
-				in_edge = Segment(poly.vertex(i-1), poly.vertex(i));
-				out_edge = Segment(poly.vertex(i), poly.vertex(i+1));
+				next_v =  iss.vertices_begin();
 			}
 
-			if(CGAL::right_turn(in_edge.vertex(0), in_edge.vertex(1), out_edge.vertex(1)))	//mountain
+			if(v == iss.vertices_begin())
 			{
+				prev_v = iss.vertices_end();
+				do{
+					--prev_v;
+				}while(prev_v->is_skeleton());
+			}
+
+			in_edge = Segment(prev_v->point(), v->point());
+			out_edge = Segment(v->point(),next_v->point());
+
+			//MOUNTAIN
+			if(CGAL::left_turn(in_edge.vertex(0), in_edge.vertex(1), out_edge.vertex(1)))	//If this vertex is convex vertex
+			{
+				//Find the skeleton edge around this vertex
 				Halfedge_around_vertex_const_circulator e_root = v->halfedge_around_vertex_begin();
 				Halfedge_around_vertex_const_circulator e = v->halfedge_around_vertex_begin();
-
 				do	
 				{
 					if((*e)->is_bisector())
 					{
+						//Add skeleton edge as mountain
 						mt.push_back(Segment((*e)->vertex()->point(), (*e)->opposite()->vertex()->point()));
-						/*
-						//Finding exterior skeleton
-						BridgingGraph bgnode;
-						search_bridgegraph<K>(bg, Segment((*e)->vertex()->point(), (*e)->opposite()->vertex()->point()), bgnode);
-						Halfedge_const_handle ex_e, ex_e_root;
-						find_skeleton_face(ess, bgnode.fid_ess,  iss.size_of_faces(),ex_e_root); 
-						ex_e =  Halfedge_const_handle(ex_e_root);
-
-						do{
-							if(ex_e->is_bisector())
-								mt.push_back(Segment(ex_e->vertex()->point(), ex_e->opposite()->vertex()->point()));
-							++ex_e;
-						}while(ex_e != ex_e_root);*/
 					}
 					++e;
 				}while( e != e_root);
 			}
-			else																			//valley
+			//VALLEY
+			else		//this vertex is reflect vertex																	
 			{
+				//Find skeleton edge around this vertex
 				Halfedge_around_vertex_const_circulator e_root = v->halfedge_around_vertex_begin();
 				Halfedge_around_vertex_const_circulator e = v->halfedge_around_vertex_begin();
 				do	
 				{
 					if((*e)->is_bisector())
 					{
+						//Add skeleton edge as valley
 						vl.push_back(Segment((*e)->vertex()->point(), (*e)->opposite()->vertex()->point()));
-						/*
-						//Finding exterior skeleton
-						BridgingGraph bgnode;
-						search_bridgegraph<K>(bg, Segment((*e)->vertex()->point(), (*e)->opposite()->vertex()->point()), bgnode);
-						Halfedge_const_handle ex_e, ex_e_root;
-						find_skeleton_face(ess, bgnode.fid_ess, iss.size_of_faces(),ex_e_root); 
-						ex_e =  Halfedge_const_handle(ex_e_root);
-
-						do{
-							if(ex_e->is_bisector())
-								vl.push_back(Segment(ex_e->vertex()->point(), ex_e->opposite()->vertex()->point()));
-							++ex_e;
-						}while(ex_e != ex_e_root);*/
 					}
 					++e;
 				}while( e != e_root);
 			}
 		}
-	}//FOR
+		//FOR STRAIGHT SKELETON VERTEX
+		else
+		{
+			//Find the skeleton edge around this vertex
+			Halfedge_around_vertex_const_circulator e_root = v->halfedge_around_vertex_begin();
+			Halfedge_around_vertex_const_circulator e = v->halfedge_around_vertex_begin();
+			do	
+			{
+				//If this sktraight skeleton edge consists of two straight skeleton vertex, add it as mountain.
+				if((*e)->opposite()->vertex()->is_skeleton())
+					mt.push_back(Segment((*e)->vertex()->point(), (*e)->opposite()->vertex()->point()));
+				++e;
+			}while( e != e_root);
+		}
+	}//LOOP INERIOR SKELETON
+
+	//LOOP EXTERIOR SKELETON
+	for(Vertex_const_iterator v = ess.vertices_begin(); v != ess.vertices_end(); ++v)
+	{
+		if(v->point().x() < minX-PAPER_THRESHOLD || v->point().x() > maxX+PAPER_THRESHOLD) continue;
+		if(v->point().y() < minY-PAPER_THRESHOLD || v->point().y() > maxY+PAPER_THRESHOLD) continue;
+	
+		//FOR VERTEX ON BOUNDARY
+		if(v->is_contour()) //if given vertex is a contour vertex,
+		{
+			Vertex_const_iterator prev_v = v->prev_link;
+			Vertex_const_iterator next_v = v->next_link;
+			
+			in_edge = Segment(prev_v->point(), v->point());
+			out_edge = Segment(v->point(), next_v->point());
+
+			//MOUNTAIN
+			if(CGAL::right_turn(in_edge.vertex(0), in_edge.vertex(1), out_edge.vertex(1)))	//If this vertex is convex vertex 
+			{
+				//Find the skeleton edge around this vertex
+				Halfedge_around_vertex_const_circulator e_root = v->halfedge_around_vertex_begin();
+				Halfedge_around_vertex_const_circulator e = v->halfedge_around_vertex_begin();
+				do	
+				{
+					if((*e)->is_bisector())
+					{
+						//Add skeleton edge as mountain
+						mt.push_back(Segment((*e)->vertex()->point(), (*e)->opposite()->vertex()->point()));
+					}
+					++e;
+				}while( e != e_root);
+			}
+			//VALLEY
+			else		//this vertex is reflect vertex																	
+			{
+				//Find skeleton edge around this vertex
+				Halfedge_around_vertex_const_circulator e_root = v->halfedge_around_vertex_begin();
+				Halfedge_around_vertex_const_circulator e = v->halfedge_around_vertex_begin();
+				do	
+				{
+					if((*e)->is_bisector())
+					{
+						//Add skeleton edge as valley
+						vl.push_back(Segment((*e)->vertex()->point(), (*e)->opposite()->vertex()->point()));
+					}
+					++e;
+				}while( e != e_root);
+			}
+		}
+		//FOR STRAIGHT SKELETON VERTEX
+		//else
+		//{
+		//	//Find the skeleton edge around this vertex
+		//	Halfedge_around_vertex_const_circulator e_root = v->halfedge_around_vertex_begin();
+		//	Halfedge_around_vertex_const_circulator e = v->halfedge_around_vertex_begin();
+		//	do	
+		//	{
+		//		//If this sktraight skeleton edge consists of two straight skeleton vertex, add it as mountain.
+		//		if((*e)->opposite()->vertex()->is_skeleton())
+		//			mt.push_back(Segment((*e)->vertex()->point(), (*e)->opposite()->vertex()->point()));
+		//		++e;
+		//	}while( e != e_root);
+		//}
+	}//LOOP EXTERIOR SKELETON
 }
 #endif

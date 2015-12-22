@@ -1,0 +1,27 @@
+\begin{thebibliography}{1}
+
+\bibitem{biunno}
+Eric Biunno.
+\newblock The origami polygon cutting theorem, mcgill university, fall 2003.
+
+\bibitem{cacciola}
+Fernando Cacciola.
+\newblock A cgal implementation of the straight skeleton of a simple 2d polygon
+  with holes.
+\newblock {\em SciSoft}.
+
+\bibitem{MV}
+Erik Demaine.
+\newblock Lecture: Geometric folding algorithms: Linkages, origami, polyhedra
+  (fall 2010).
+
+\bibitem{demaine}
+Martian L.~Demaine Erik D.~Demaine and Anna Lubiw.
+\newblock Folding and cutting paper.
+\newblock {\em Deaprtment of Computer Science, University of Waterloo, Canada}.
+
+\bibitem{CGALss}
+CGAL Manual.
+\newblock Cgal 4.7 - 2d straight skeleton and polygon offsetting.
+
+\end{thebibliography}

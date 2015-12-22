@@ -33,10 +33,9 @@ void read_file(char* filename, Polygon_2& poly, QPolygonF& qt_poly)
 	while(!f.eof())
 	{
 		f >> x >> y ;
-		
+
 		if(x < minX) minX = x; 		if(x > maxX) maxX = x;
 		if(y < minY) minY = y;		if(y > maxY) maxY = y;
-
 		poly.push_back(Point(x, y));
 		qt_poly.push_back(QPointF(x, y));
 	}
@@ -83,18 +82,25 @@ void createQTscene(QGraphicsScene& s, QPolygonF& poly, std::list<QLineF>& bis, s
 	}
 
 	//Draw mountain
+	//QPen pen_mt = QPen(Qt::DashDotLine);
+	QPen pen_mt = QPen(Qt::green);
+	pen_mt.setWidthF(width/300.0);
+
 	while(mt.size() !=0 )														
 	{
 		line = mt.front();
-		s.addLine(line, QPen(QBrush(Qt::green), width/300.0));
+		s.addLine(line, pen_mt);
 		mt.pop_front();
 	}
 
 	//Draw valley
+	//QPen pen_vl = QPen(Qt::DotLine);
+	QPen pen_vl = QPen(Qt::yellow);
+	pen_vl.setWidthF(width/300.0);
 	while(vl.size() !=0 )														
 	{
 		line = vl.front();
-		s.addLine(line, QPen(QBrush(Qt::yellow), width/300.0));
+		s.addLine(line,pen_vl);
 		vl.pop_front();
 	}
 }
@@ -109,7 +115,6 @@ void print_point ( CGAL::Point_2<K> const& p )
 template<class K>
 void print_straight_skeleton_vertex( CGAL::Straight_skeleton_2<K> const& ss )
 {
-
 	typedef typename Ss::Vertex_const_iterator Vertex_const_iterator ;
 
 	for ( Vertex_const_iterator i = ss.vertices_begin(); i != ss.vertices_end(); ++i )
