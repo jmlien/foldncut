@@ -1,1 +1,1 @@
-# foldncut
+# fold and cut
